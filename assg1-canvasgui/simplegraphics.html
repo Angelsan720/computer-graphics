@@ -20,7 +20,7 @@
     var canvas;
     var ctx;
     var svg;
-    var rect = canvas.getBoundingClientRect();
+    //var rect = canvas.getBoundingClientRect();
 
     /* ### Model ### */
 
@@ -81,12 +81,14 @@
                 document.getElementById('pacBody').setAttribute("stroke", model.color[model.svgGhost]);
                 document.getElementById('pacHead').setAttribute("fill", model.color[model.svgGhost]);
                 document.getElementById('pacHead').setAttribute("stroke", model.color[model.svgGhost]);
-        }
+            }
         }
 
     /* ### Drawing ### */
     function drawGhost(){
-            ctx.clearRect(0,0,canvas.width,canvas.height)
+
+            ctx.fillStyle = "black";
+            ctx.fillRect(0,0,canvas.width,canvas.height)
             ctx.lineWidth = 1
             var i;
             drawBody()
@@ -183,7 +185,7 @@
       <td>
          <svg id='mySVG' width="400" height="600"
               xmlns="http://www.w3.org/2000/svg">
-
+              <rect width="400" height="600" fill="black" />
               <polyline id="pacBody" points="50 175 50 500 100 450 150 500 200 450 250 500 300 450 350 500 350 175" stroke="red" fill="red" stroke-width="1"/>
 
               <circle id="pacHead" cx="200" cy="175" r="150" fill="red" />
