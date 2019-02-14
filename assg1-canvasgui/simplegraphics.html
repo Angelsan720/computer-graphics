@@ -131,7 +131,9 @@
                     ctx.strokeStyle = model.sclara;
                     ctx.fillStyle = model.sclara;
                     ctx.beginPath()
-                    ctx.arc(eyeXPos[i] , eyeYPos , eyeSize , 0 , 2 * Math.PI);
+                    //ctx.ellipse(eyeXPos[i] , eyeYPos , eyeSize , eyeSize , 0 , 2 * Math.PI)
+                    ctx.ellipse(eyeXPos[i], eyeYPos, eyeSize-5, eyeSize+5, 0, 0, 2 * Math.PI);
+                    //ctx.arc(eyeXPos[i] , eyeYPos , eyeSize , 0 , 2 * Math.PI);
                     ctx.closePath()
                     ctx.stroke();
                     ctx.fill();
@@ -190,8 +192,8 @@
 
               <circle id="pacHead" cx="200" cy="175" r="150" fill="red" />
 
-              <circle id="leftSclara" cx="125" cy="150" r="50" fill="white" />
-              <circle id="rightSclara" cx="275" cy="150" r="50" fill="white" />
+              <ellipse id="leftSclara" cx="125" cy="150" rx="45" ry="55" fill="white" />
+              <ellipse id="rightSclara" cx="275" cy="150" rx="45" ry="55" fill="white" />
 
               <circle id="leftIris" cx="125" cy="150" r="25" fill="blue" />
               <circle id="rightIris" cx="275" cy="150" r="25" fill="blue" />
