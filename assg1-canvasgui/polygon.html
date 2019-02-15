@@ -4,7 +4,6 @@
 <title>HTML5 Canvas &mdash; Demo polygon</title>
 <meta http-equiv="content-type" content="text/html; charset=UTF8">
 
-//Never in my bachelors have I cared for looks
 <style>
     canvas {border: solid 1px black}
     td {vertical-align: top;}
@@ -29,7 +28,7 @@
             text-decoration: none;
             background-color: #C0C0C0;
     }
-    .tool:hover { background-color: #A0A0A0;}//this is just fancy
+    .tool:hover { background-color: #A0A0A0;}
 
     .b1 {background-color: #FF0000;} /* Red picker */
     .b2 {background-color: #00FF00;} /* Green picker */
@@ -65,6 +64,7 @@
                 state : 0,//controls which tool is in use
                 selectorColor:"gray" , //node bounding box
                 selected : -1, //which node is selected for the movement and deletion tools
+                bbColor:"cyan",
                 selectedColor:"black" //highlight the currently selected node
         }
         /*add a random triangle to the canvas as a default*/
@@ -149,25 +149,18 @@
       model.linecolor = color
       draw()
     }
-    function toolFunction(tool) {//tool behavior
-      if (tool == "new"){//default state
-        model.state = 0
-
-    } else if (tool == "remove"){//remove currently selected node
-          if (model.selected > -1){
-              model.x.splice(model.selected,1)
-              model.y.splice(model.selected,1)
-          }
-          model.selected = -1
-          draw()
-
-      } else if (tool == "edit"){//move a node
-        model.state = 2
-
-    }else if (tool == "select"){//select a node to either remove or edit
-        model.state = 3
-      }
-    }    /* ### Keyboard ### */
+    function toolFunction(tool){//tool behavior
+        if (tool == "new"){//default state
+            model.state = 0
+        } else if (tool == "remove"){//remove currently selected node
+            removeNode()
+            draw()
+            } else if (tool == "edit"){//move a node
+                model.state = 2
+            }else if (tool == "select"){//select a node to either remove or edit
+                model.state = 3
+            }
+        }    /* ### Keyboard ### */
     function selectNearestNode(x , y){//iterate though the nodes and find if theres a valid candidate
         min = 10
         dist = min
@@ -197,12 +190,54 @@
         //console.log('onMouseUp: event=',event)
         document.getElementById('msgBox').innerHTML =
               "keyDown (key='"+event.key+"',keyCode="+event.keyCode+")";
+        if (model.selected >= 0){
+            if (event.keyCode == 37){
+                model.x[model.selected] = (model.x[model.selected] - 10)
+            } else  if (event.keyCode == 38){
+                model.y[model.selected] = (model.y[model.selected] - 10)
+            } else  if (event.keyCode == 39){
+                model.x[model.selected] = (model.x[model.selected] + 10)%canvas.width
+            } else  if (event.keyCode == 40){
+                model.y[model.selected] = (model.y[model.selected] + 10)%canvas.height
+            }  else if (event.keyCode == 173){
+                removeNode()
+            } else if(event.keyCode == 61){
+                if (model.selected + 1 == model.x.length){
+                    next = 0
+                } else{
+                    next = model.selected+1
+                }
+                model.x.splice(model.selected+1 , 0 , (model.x[model.selected]+model.x[next])/2)
+                model.y.splice(model.selected+1 , 0 , (model.y[model.selected]+model.y[next])/2)            }
+                console.log("added" , model.y[model.selected+1])
+
+            if (model.y[model.selected] < 0){
+                model.y[model.selected] = canvas.height
+            }
+            if (model.x[model.selected] < 0){
+                model.x[model.selected] = canvas.width
+            }
+            draw()
+        }
+    }
+    function removeNode(){
+        if (model.selected > -1){
+            model.x.splice(model.selected,1)
+            model.y.splice(model.selected,1)
+        }
+        model.selected = -1
+
     }
 
     /* ### Drawing ### */
 
     function draw() {//magic
+        drawPolygon()
+        drawBoundingBox()
+    }
+    function drawPolygon(){
         ctx.clearRect(0,0,canvas.width,canvas.height)
+        ctx.setLineDash([]);
 
         ctx.strokeStyle = model.linecolor
         //ctx.fillStyle = model.fillcolor
@@ -210,7 +245,7 @@
         ctx.beginPath()
         ctx.moveTo(model.x[0] , model.y[0])
         for(i = 1; i < model.x.length; i++){
-                ctx.lineTo(model.x[i] , model.y[i])
+            ctx.lineTo(model.x[i] , model.y[i])
         }
         ctx.closePath()
         ctx.stroke()
@@ -228,6 +263,21 @@
             ctx.stroke()
             ctx.closePath()
         }
+
+    }
+
+    function drawBoundingBox(){
+        xmax = Math.max.apply(null , model.x)
+        ymax = Math.max.apply(null , model.y)
+        xmin = Math.min.apply(null , model.x)
+        ymin = Math.min.apply(null , model.y)
+
+        ctx.beginPath()
+        ctx.strokeStyle = model.selectedColor
+        ctx.setLineDash([5, 15]);
+        ctx.rect(xmin , ymin , xmax - xmin , ymax - ymin);
+        ctx.stroke()
+        ctx.closePath()
     }
 
     /* ### Initialization ### */
@@ -259,17 +309,25 @@
     </div>
     <div>
       <button onclick="toolFunction('new')" class="button tool New">New</button>
-      <button onclick="toolFunction('remove')" class="button tool Remove">Remove</button>
-      <button onclick="toolFunction('edit')" class="button tool Edit">Edit</button>
       <button onclick="toolFunction('select')" class="button tool Select">Select</button>
+      <button onclick="toolFunction('edit')" class="button tool Edit">Edit</button>
+      <button onclick="toolFunction('remove')" class="button tool Remove">Remove</button>
     </div>
     <p><small>Message: <span id="msgBox"></span></small></p>
 
     <h4>Description</h4>
-    <i>In this page the user can use tools to make a polygon</i><br>
-    At loading: Draws a triangle.<br>
-    Mouse click: Draws a small rectangle at mouse position.<br>
-    Key Press: Prints the key in the message box
+    <i>In this page the user can use tools to make a polygon</i>
+    <br>At load: Draws a random triangle.<br>
+    <br>"New" creates a new node when the user clicks within the canvas<br>
+    <br>"Select" selects a node near the mouse position when clicking on the canvas<br>
+    <br>"Edit" permits the user to move a selected node within the canvas<br>
+    <br>"Remove" removes a selected node<br>
+    <br>Key Press: prints the key in the message box<br>
+    <br>+ Press: if a node is selected, adds a node between the selected node and the next node<br>
+    <br>- Press: if a node is selected, removes the selected node<br>
+    <br>Arrow Press: if a node is selected, moves the selected node according to the arrow direction <br>
+
+
 
 </body>
 </html>

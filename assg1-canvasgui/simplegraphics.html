@@ -35,8 +35,9 @@
                     sclara:"white",
                     iris:"blue",
                     font:"50px Times New Roman",
-                    fontcolor:["red" , "pink" , "cyan" , "orange" , "gold" , "gray green" , "dark gray"]
-                    //lookat:[-1,-1]
+                    fontcolor:["red" , "pink" , "cyan" , "orange" , "gold" , "gray green" , "dark gray"],
+                    lookat:[-1,-1],
+                    look:15
             }
     }
 
@@ -66,8 +67,9 @@
                 //getMousePos(canvas, event)
                 document.getElementById('msgBox').innerHTML = "mouseClick in canvas";
                 model.canvasGhost = (model.canvasGhost + 1)%4//change the canvas ghost to draw
-                //model.lookat[0] = Math.round(event.clientX - rect.left)
-                //model.lookat[1] = Math.round(event.clientX - rect.top)
+                var rect = canvas.getBoundingClientRect();
+                model.lookat[0] = Math.round(event.clientX - rect.left)
+                model.lookat[1] = Math.round(event.clientY - rect.top)
 
                 drawGhost()//redraw the ghost
         }
@@ -84,6 +86,20 @@
                 document.getElementById('pacBody').setAttribute("stroke", model.color[model.svgGhost]);
                 document.getElementById('pacHead').setAttribute("fill", model.color[model.svgGhost]);
                 document.getElementById('pacHead').setAttribute("stroke", model.color[model.svgGhost]);
+                /*
+                /if (model.lookat[0]+model.lookat[1]>=0){
+
+                    Pos = 150 - model.look*Math.sin(Math.atan2(150 - model.lookat[1], 125 - model.lookat[0]))
+                    document.getElementById('leftIris').setAttribute("cy",toString(Pos))
+                    Pos = 125 - model.look*Math.cos(Math.atan2(150 - model.lookat[1], 125 - model.lookat[0]))
+                    document.getElementById('leftIris').setAttribute("cx",toString(Pos))
+
+                    Pos = 150 - model.look*Math.sin(Math.atan2(150 - model.lookat[1], 275 - model.lookat[0]))
+                    document.getElementById('rightIris').setAttribute("cy",toString(Pos))
+                    Pos = 275 - model.look*Math.cos(Math.atan2(150 - model.lookat[1], 275 - model.lookat[0]))
+                    document.getElementById('rightIris').setAttribute("cx",toString(Pos))
+                }
+                */
             }
         }
 
@@ -146,15 +162,19 @@
                     ctx.strokeStyle = model.iris;
                     ctx.fillStyle = model.iris;
                     ctx.beginPath()
-                    ctx.arc(eyeXPos[i] , eyeYPos , irisSize , 0 , 2 * Math.PI);
+                    if (model.lookat[0]+model.lookat[1]>=0){
+                        //this makes the canvas ghost eyes move
+                        ctx.arc(eyeXPos[i] - model.look*Math.cos(Math.atan2(eyeYPos - model.lookat[1], eyeXPos[i] - model.lookat[0])) , eyeYPos + model.look*Math.sin(Math.atan2(model.lookat[1]-eyeYPos, eyeXPos[i]-model.lookat[0])), irisSize , 0 , 2 * Math.PI);
+                    }else{
+                        ctx.arc(eyeXPos[i] , eyeYPos , irisSize , 0 , 2 * Math.PI);
+                    }
 
                     ctx.closePath()
                     ctx.stroke();
                     ctx.fill();
             }
-
-
     }
+    //var angleRadians = Math.atan2(p2.y - p1.y, p2.x - p1.x)
     function drawText(){
             ctx.fillStyle =model.color[model.canvasGhost]
             ctx.font = model.font
