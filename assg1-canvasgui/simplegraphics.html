@@ -27,16 +27,16 @@
     var model
     function initModel() {
             model = {
-                    canvasGhost : 0,
-                    svgGhost : 0,
-                    name : ["Blinky","Pinky","Inky","Clyde" , "Kinky" , "Orson" , "Spooky"],
-                    color : ["red" , "pink" , "cyan" , "orange" , "gold" , "gray green" , "dark gray"],
+                    canvasGhost : 0, //which ghost is displayed in canvas
+                    svgGhost : 0, //which ghost is displayed in canvas
+                    name : ["Blinky","Pinky","Inky","Clyde" , "Kinky" , "Orson" , "Spooky"],//names of the ghosts
+                    color : ["red" , "pink" , "cyan" , "orange" , "gold" , "gray green" , "dark gray"],//respective color of the ghost
                     background :"black",
                     sclara:"white",
                     iris:"blue",
                     font:"50px Times New Roman",
-                    fontcolor:["red" , "pink" , "cyan" , "orange" , "gold" , "gray green" , "dark gray"],
-                    lookat:[-1,-1]
+                    fontcolor:["red" , "pink" , "cyan" , "orange" , "gold" , "gray green" , "dark gray"]
+                    //lookat:[-1,-1]
             }
     }
 
@@ -61,17 +61,20 @@
     }
     function onMouseClick(event) {
         console.log("onMouseDown: event = ",event);
-        if (event.target==canvas){
+        if (event.target==canvas){//if clicked on canvas area
 
                 //getMousePos(canvas, event)
                 document.getElementById('msgBox').innerHTML = "mouseClick in canvas";
-                model.canvasGhost = (model.canvasGhost + 1)%4
+                model.canvasGhost = (model.canvasGhost + 1)%4//change the canvas ghost to draw
                 //model.lookat[0] = Math.round(event.clientX - rect.left)
                 //model.lookat[1] = Math.round(event.clientX - rect.top)
-                drawGhost()
+
+                drawGhost()//redraw the ghost
         }
         else{
-                model.svgGhost = (model.svgGhost + 1)%4
+                model.svgGhost = (model.svgGhost + 1)%4//change the svg ghost
+
+                /*redraw the svg ghost*/
                 document.getElementById('msgBox').innerHTML = "mouseClick in SVG:"+svg.getBBox();
                 document.getElementById('pacText').textContent = model.name[model.svgGhost];
 
@@ -87,10 +90,9 @@
     /* ### Drawing ### */
     function drawGhost(){
 
-            ctx.fillStyle = "black";
-            ctx.fillRect(0,0,canvas.width,canvas.height)
+            ctx.fillStyle = "black";//set background
+            ctx.fillRect(0,0,canvas.width,canvas.height)//draw the background
             ctx.lineWidth = 1
-            var i;
             drawBody()
             drawEyes()
             drawText()
@@ -98,8 +100,10 @@
 
     }
     function drawBody(){
-            var bodyX = [50 , 50 , 100 , 150 , 200 , 250 , 300 , 350 , 350]
-            var bodyY = [175 , 500 , 450 , 500 , 450 , 500 , 450 , 500 , 175]
+            var bodyX = [50 , 50 , 100 , 150 , 200 , 250 , 300 , 350 , 350]//the ghost body x coords
+            var bodyY = [175 , 500 , 450 , 500 , 450 , 500 , 450 , 500 , 175]//the ghost body y coords
+
+            /*use the current ghost colors*/
             ctx.strokeStyle = model.color[model.canvasGhost];
             ctx.fillStyle = model.color[model.canvasGhost];
             ctx.beginPath()
@@ -111,6 +115,7 @@
             }
             ctx.closePath()
 
+            /*Draw the curved head*/
             ctx.arc((bodyX[0]+bodyX[bodyX.length-1])/2  , bodyY[0] , (bodyX[bodyX.length-1]-bodyX[0])/2 , 0 , Math.PI , true);
             ctx.closePath()
 
@@ -127,6 +132,7 @@
             var eyeYPos = 150
             var irisSize = 25
 
+            /*draw both eyes with the irises*/
             for (i = 0 ; i < 2 ; i++) {
                     ctx.strokeStyle = model.sclara;
                     ctx.fillStyle = model.sclara;
@@ -150,7 +156,7 @@
 
     }
     function drawText(){
-            ctx.fillStyle =model.color[model.canvasGhost]// model.fontcolor
+            ctx.fillStyle =model.color[model.canvasGhost]
             ctx.font = model.font
             ctx.textAlign = "center";
             ctx.fillText(model.name[model.canvasGhost], canvas.width/2, 550);
