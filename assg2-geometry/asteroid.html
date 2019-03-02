@@ -1,0 +1,335 @@
+model<html>
+
+<head>
+<title>HTML5 Canvas &mdash; Demo asteroid</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF8">
+<script type="text/javascript" src="dat.gui.js"></script>
+<script type="text/javascript" src="gl-matrix.js"></script>
+
+<style>
+    canvas {border: solid 1px black}
+    td {vertical-align: top;}
+</style>
+</head>
+
+<script type="text/javascript">
+    window.requestAnimFrame = (function() {
+      return window.requestAnimationFrame ||
+             window.webkitRequestAnimationFrame ||
+             window.mozRequestAnimationFrame ||
+             window.oRequestAnimationFrame ||
+             window.msRequestAnimationFrame ||
+             function(/* function FrameRequestCallback */ callback, /* DOMElement Element */ element) {
+               window.setTimeout(callback, 1000/60);
+             };
+         })();
+
+    var canvas;
+    var ctx;
+    var w,h;
+
+    var model
+    function init() {
+        model = {
+            'x0': canvas.width/2,
+            'y0': canvas.height/2,
+            'x':0,
+            'y':0,
+            'angle': 0,
+            'mode': 0,
+            'vx': 0,
+            'vy': 0,
+            "escorts":6,
+            "escortDistance":10,
+            "bulletsx":[],
+            "bulletsy":[],
+            "bulletsAngle":[],
+            // For Mode 0//jump
+            'fixedJump': 20, // 20 pix/s
+            'fixedTurn': 15, // 15 deg for each keyPress
+            // For Mode 1//move
+            'Velocity': 20, // 20 pix/s
+            'angleVelocity': 180, // 1 turn in 2s
+            // For Mode 2
+            'fixedAcceleration': 0.1 // 0.1 pix/s velocity if accelerate for 1s
+        }
+    }
+
+    /* ### GUI ### */
+    var gui;
+    function initGUI(){
+        gui = new dat.GUI({ autoPlace: true });
+
+        gui.add(model,'x0') .min(0)
+                            .max(w)
+                            .step(1)
+                            .onChange(onParamsChange)//.listen()
+
+        gui.add(model,'x')  .min(-w*2)
+                            .max(w*2)
+                            .step(1)
+                            .onChange(onParamsChange)//.listen()
+
+        gui.add(model,'y0') .min(0)
+                            .max(h)
+                            .step(1)
+                            .onChange(onParamsChange)//.listen()
+
+        gui.add(model,'y') .min(-h*2)
+                            .max(h*2)
+                            .step(1)
+                            .onChange(onParamsChange)//.listen()
+        gui.add(model,'angle')  .min(-180)
+                                .max(180)
+                                .step(1)
+                                .onChange(onParamsChange)//.listen()
+        gui.add(model,'vx')     .min(-50)
+                                .max(+50)
+                                .step(0.1)
+                                .onChange(onParamsChange)//.listen()
+        gui.add(model,'vy')     .min(-50)
+                                .max(+50)
+                                .step(0.1)
+                                .onChange(onParamsChange)//.listen()
+        gui.add(model,'angleVelocity')  .min(0)
+                                        .max(720)
+                                        .step(0.1)
+                                        .onChange(onParamsChange) // 720 deg max in 1s
+        gui.add(model,'fixedAcceleration')  .min(0)
+                                            .max(+50)
+                                            .step(0.1)
+                                            .onChange(onParamsChange)
+
+        gui.add(model,'escorts')    .min(2)
+                                    .max(10)
+                                    .step(1)
+                                    .onChange(onParamsChange)//.listen()
+
+        gui.add(model,'escortDistance') .min(0)
+                                        .max(20)
+                                        .step(1)
+                                        .onChange(onParamsChange)//.listen()
+
+
+    }
+    // GUI callback when parameters are changed manually in the GUI
+    function onParamsChange() {
+        draw()
+    }
+
+    /* ### Keyboard ### */
+    var currentlyPressedKeys = {};
+    function initKeys(canvas) {
+        // Make sure the canvas can receive the key events
+        canvas.setAttribute('tabindex','0');
+        canvas.focus();
+
+        // Register the keyDown and keyUp events
+        canvas.addEventListener( "keydown", onKeyDown, true);
+        canvas.addEventListener( "keyup", onKeyUp, true);
+    }
+    // Callbacks for discrete key events
+    function onKeyDown(event) {
+        // Uncomment this to display key presses to find the keyCodes
+        //console.log(event.key)
+        //console.log(event.keyCode)
+        event.preventDefault();
+
+        // Put your code here
+        currentlyPressedKeys[event.key]=(event.keyCode)
+
+        if (model["mode"]==0) {
+            consol.log("Discrete")
+            for (key in currentlyPressedKeys){
+                if ([37,74].includes(currentlyPressedKeys[key])){
+                    //console.log(true)
+                    model["angle"] += model['fixedTurn']
+                }
+                if ([38,73].includes(currentlyPressedKeys[key])){
+                    model['x'] += model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    model['y'] += model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    //console.log(true)
+                }
+                if ([39,76].includes(currentlyPressedKeys[key])){
+                    //console.log(true)
+                    model["angle"] -= model['fixedTurn']
+                }
+                if ([40,75].includes(currentlyPressedKeys[key])){
+                    model['x'] -= model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    model['y'] -= model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    //console.log(true)
+                }
+            }
+
+            //'fixedDisplacement': 20, // 20 pix/s
+            //'angleStep': 15
+            // React to discrete key presses in mode 0
+        }
+
+        // Handle single key presses (for example for firing the gun)
+        if (event.keyCode == 32) { // " "
+            console.log('ATACK ATACK ATACK')
+        }
+    }
+    function onKeyUp(event) {
+        currentlyPressedKeys = {}
+    }
+
+    /* ### Timing and main loop ### */
+    var startTime = 0;
+    var lastTime = 0;
+    var elapsed = 0, totalElapsed = 0;
+    function updateTime() {
+        var timeNow = new Date().getTime() / 1000; // All expressed in seconds
+        if (lastTime != 0) {
+            elapsed = timeNow - lastTime;
+        } else {
+            startTime = timeNow;
+        }
+        lastTime = timeNow;
+        totalElapsed = timeNow - startTime;
+    }
+    // Timer callback for animations
+    function onTick() {
+        if (model.mode>0) {
+            updateTime()
+            animate();
+            draw();
+        }
+        requestAnimFrame(onTick);
+    }
+    // To animate the ship, check the keyboard state by polling
+    function animate() {
+
+        if (model.mode==1) {
+            // React to key state in mode 1
+        }
+
+        if (model.mode==2) {
+            // React to key state in mode 2
+        }
+
+    }
+
+    /* ### Drawing ### */
+    function drawGuides() {
+        // Do not call this function once your ship is in
+        // correct position/correct angle
+
+        // Define transformation before drawing the guides
+        ctx.setTransform(1,0, 0,1, 0,0)
+
+        ctx.beginPath()
+        ctx.rect(model.x0-5, model.y0-5,10,10)
+        ctx.fillStyle="red";
+        ctx.lineWidth = 2;
+        ctx.fill()
+
+        ctx.beginPath()
+        let angleRad = model.angle/180*Math.PI
+        ctx.moveTo(model.x0, model.y0-60)
+        ctx.lineTo(model.x0, model.y0)
+        ctx.lineTo(model.x0+60*Math.sin(angleRad),
+                   model.y0-60*Math.cos(angleRad))
+        ctx.strokeStyle="gray";
+        ctx.lineWidth = 1;
+        ctx.stroke()
+
+        ctx.beginPath()
+        if (angleRad>=0)
+            ctx.arc(model.x0,model.y0,50,-Math.PI/2,angleRad-Math.PI/2,false);
+        else
+            ctx.arc(model.x0,model.y0,50,-Math.PI/2,angleRad-Math.PI/2,true);
+        ctx.stroke()
+
+        ctx.strokeStyle="black";
+        ctx.strokeText('<-- Move the ship there', model.x0, model.y0)
+    }
+    function drawShip(){
+        ctx.beginPath()
+        ctx.moveTo(y , x+5)
+        ctx.lineTo(y + 10 , x + 10)
+        ctx.lineTo(y , x - 10)
+        ctx.lineTo(y - 10 , x + 10)
+        ctx.closePath()
+        ctx.stroke()
+    }
+    function drawShips() {
+
+        ctx.setTransform(1,0, 0,1, 0,0)
+
+        // This ship is not in the correct place,
+        // use rotate and translate to position it correctly
+        ctx.translate(model["x0"] , model["y0"])
+        ctx.rotate(model.angle * Math.PI / 180);
+
+        mainx = model["x"]
+        mainy = model["y"]
+
+        x = mainx
+        y = mainy
+        ctx.strokeStyle="black";
+        ctx.lineWidth = 2;
+
+        drawShip()
+
+        escorts = model["escorts"]
+        distance = model["escortDistance"]
+        for (i = 0; i < escorts; i++) {
+
+            x = Math.cos(i*360/escorts * Math.PI / 180) * escorts * distance + mainx
+            y = Math.sin(i*360/escorts * Math.PI / 180) * escorts * distance + mainy
+            ctx.strokeStyle="black";
+            ctx.lineWidth = 0.3;
+
+            drawShip()
+        }
+    }
+    function draw() {
+        // Reset transform before clearing the canvas
+        ctx.setTransform(1,0,0, 1,0,0)
+        ctx.clearRect(0,0,canvas.width,canvas.height)
+        //drawGuides() // Remove this function when your ship is OK
+
+        drawShips()
+    }
+    /* ### Initialization ### */
+    function start() {
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+
+        w = canvas.width;
+        h = canvas.height;
+
+        // Do init
+        init()
+        initGUI()
+        initKeys(canvas)
+
+        // Draw for the first time
+        draw()
+
+        // Launch main animation loop
+        onTick()
+    }
+</script>
+<body onload="start();">
+    <h2>Asteroid</h2>
+    <table><tbody><tr>
+
+    <td>
+    <table><tbody>
+    <tr>
+    <td><canvas id="canvas" width="500" height="500"></canvas></td>
+    </tr>
+    <tr>
+    <td>Canvas</td>
+    </tr>
+    <tr>
+    <td><small><span id="text"></span></small></td>
+    </tr>
+    </tbody></table>
+    </td>
+
+</body>
+</html>
