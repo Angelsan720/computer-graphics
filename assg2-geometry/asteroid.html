@@ -31,14 +31,14 @@ model<html>
     var model
     function init() {
         model = {
+            'mode': 0,
             'x0': canvas.width/2,
             'y0': canvas.height/2,
             'x':0,
             'y':0,
-            'angle': 0,
-            'mode': 0,
             'vx': 0,
             'vy': 0,
+            'angle': 0,
             "escorts":6,
             "escortDistance":10,
             "bulletsx":[],
@@ -143,20 +143,20 @@ model<html>
             for (key in currentlyPressedKeys){
                 if ([37,74].includes(currentlyPressedKeys[key])){
                     //console.log(true)
-                    model["angle"] += model['fixedTurn']
+                    model["angle"] -= model['fixedTurn']
                 }
                 if ([38,73].includes(currentlyPressedKeys[key])){
-                    model['x'] += model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
-                    model['y'] += model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    model['x'] -= model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    model['y'] -= model['fixedJump']*Math.sin(model["angle"]* Math.PI / 180)
                     //console.log(true)
                 }
                 if ([39,76].includes(currentlyPressedKeys[key])){
                     //console.log(true)
-                    model["angle"] -= model['fixedTurn']
+                    model["angle"] += model['fixedTurn']
                 }
                 if ([40,75].includes(currentlyPressedKeys[key])){
-                    model['x'] -= model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
-                    model['y'] -= model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    model['x'] += model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
+                    model['y'] += model['fixedJump']*Math.sin(model["angle"]* Math.PI / 180)
                     //console.log(true)
                 }
             }
@@ -170,6 +170,7 @@ model<html>
         if (event.keyCode == 32) { // " "
             console.log('ATACK ATACK ATACK')
         }
+        draw()
     }
     function onKeyUp(event) {
         currentlyPressedKeys = {}
