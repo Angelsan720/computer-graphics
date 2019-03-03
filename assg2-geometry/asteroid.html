@@ -139,7 +139,7 @@ model<html>
         currentlyPressedKeys[event.key]=(event.keyCode)
 
         if (model["mode"]==0) {
-            consol.log("Discrete")
+            console.log("Discrete")
             for (key in currentlyPressedKeys){
                 if ([37,74].includes(currentlyPressedKeys[key])){
                     //console.log(true)
