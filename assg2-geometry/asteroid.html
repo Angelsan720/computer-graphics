@@ -143,27 +143,36 @@ model<html>
             for (key in currentlyPressedKeys){
                 if ([37,74].includes(currentlyPressedKeys[key])){
                     //console.log(true)
-                    model["angle"] -= model['fixedTurn']
+                    model.angle -= model.fixedTurn
                 }
                 if ([38,73].includes(currentlyPressedKeys[key])){
-                    model['x'] -= model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
-                    model['y'] -= model['fixedJump']*Math.sin(model["angle"]* Math.PI / 180)
-                    //console.log(true)
+                    model.x -= model.fixedJump*Math.cos(model.angle* Math.PI / 180)
+
+                    model.y -= model.fixedJump*Math.sin(model.angle* Math.PI / 180)
                 }
                 if ([39,76].includes(currentlyPressedKeys[key])){
                     //console.log(true)
-                    model["angle"] += model['fixedTurn']
+                    model.angle += model.fixedTurn
                 }
                 if ([40,75].includes(currentlyPressedKeys[key])){
-                    model['x'] += model['fixedJump']*Math.cos(model["angle"]* Math.PI / 180)
-                    model['y'] += model['fixedJump']*Math.sin(model["angle"]* Math.PI / 180)
-                    //console.log(true)
+                    model.x += model.fixedJump*Math.cos(model.angle* Math.PI / 180)
+                    model.y += model.fixedJump*Math.sin(model.angle* Math.PI / 180)
+                }
+                if (model.x<(-canvas.width/2)){
+                    model.x = -model.x
+                    //console.log("A")
+                } else if (model.x>(canvas.width/2)){
+                    model.x = -model.x
+                    //console.log("C")
+                }
+                if (model.y<(-canvas.height/2)){
+                    model.y = -model.y
+                    //console.log("B")
+                }else if (model.y>(canvas.height/2)){
+                    model.y = -model.y
+                    //console.log("D")
                 }
             }
-
-            //'fixedDisplacement': 20, // 20 pix/s
-            //'angleStep': 15
-            // React to discrete key presses in mode 0
         }
 
         // Handle single key presses (for example for firing the gun)
@@ -220,11 +229,13 @@ model<html>
         // Define transformation before drawing the guides
         ctx.setTransform(1,0, 0,1, 0,0)
 
+
         ctx.beginPath()
         ctx.rect(model.x0-5, model.y0-5,10,10)
         ctx.fillStyle="red";
         ctx.lineWidth = 2;
         ctx.fill()
+
 
         ctx.beginPath()
         let angleRad = model.angle/180*Math.PI
@@ -246,7 +257,23 @@ model<html>
         ctx.strokeStyle="black";
         ctx.strokeText('<-- Move the ship there', model.x0, model.y0)
     }
+    function drawGrid(){
+        ctx.lineWidth = 1
+        //ctx.setLineDash([10, 10])
+        for (i=10 ; i < canvas.width ; i+=10){
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, canvas.width);
+            ctx.stroke();
+            ctx.moveTo(0, i);
+            ctx.lineTo(canvas.width , i);
+            ctx.stroke();
+        }
+        ctx.setLineDash([])
+    }
+
     function drawShip(){
+
         ctx.beginPath()
         ctx.moveTo(y , x+5)
         ctx.lineTo(y + 10 , x + 10)
@@ -258,17 +285,15 @@ model<html>
     function drawShips() {
 
         ctx.setTransform(1,0, 0,1, 0,0)
+        ctx.translate(model.x0 - model.y , model.y0 + model.x)
+        ctx.rotate(model["angle"] * Math.PI / 180)
 
-        // This ship is not in the correct place,
-        // use rotate and translate to position it correctly
-        ctx.translate(model["x0"] , model["y0"])
-        ctx.rotate(model.angle * Math.PI / 180);
+        //console.log(model["x"] , model["y"] , model["angle"])
+        centerx = 0
+        centery = 0
 
-        mainx = model["x"]
-        mainy = model["y"]
-
-        x = mainx
-        y = mainy
+        x = centerx
+        y = centery
         ctx.strokeStyle="black";
         ctx.lineWidth = 2;
 
@@ -278,8 +303,8 @@ model<html>
         distance = model["escortDistance"]
         for (i = 0; i < escorts; i++) {
 
-            x = Math.cos(i*360/escorts * Math.PI / 180) * escorts * distance + mainx
-            y = Math.sin(i*360/escorts * Math.PI / 180) * escorts * distance + mainy
+            x = Math.cos(i*360/escorts * Math.PI / 180) * escorts * distance + centerx
+            y = Math.sin(i*360/escorts * Math.PI / 180) * escorts * distance + centery
             ctx.strokeStyle="black";
             ctx.lineWidth = 0.3;
 
@@ -291,8 +316,9 @@ model<html>
         ctx.setTransform(1,0,0, 1,0,0)
         ctx.clearRect(0,0,canvas.width,canvas.height)
         //drawGuides() // Remove this function when your ship is OK
-
+        //drawGrid()
         drawShips()
+
     }
     /* ### Initialization ### */
     function start() {
