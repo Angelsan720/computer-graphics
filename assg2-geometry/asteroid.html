@@ -48,8 +48,8 @@ model<html>
             'vx': 0, // 20 pix/s
             'vy': 0, // 20 pix/s
             'angularVelocity': 0, // 1 turn in 2s
-            'fixedAcceleration': 0.1, // 0.1 pix/s velocity if accelerate for 1s
-            'fixedAngularAcceleration': 0.1
+            'fixedAcceleration': 100, // 0.1 pix/s velocity if accelerate for 1s
+            'fixedAngularAcceleration': -100
         }
     }
 
@@ -132,7 +132,7 @@ model<html>
 
         // Put your code here
         currentlyPressedKeys[event.key]=(event.keyCode)
-        console.log(event.key , ":" , event.keyCode)
+        //console.log(event.key , ":" , event.keyCode)
         /*
         if (model["mode"]==0) {
             console.log("Discrete")
@@ -205,38 +205,51 @@ model<html>
     // To animate the ship, check the keyboard state by polling
     function animate() {
 
-        console.log("Animate")
+        //console.log("Animate")
+        //console.log(model.x , model.y)
+        //console.log(currentlyPressedKeys)
+        accelX = -Math.cos(model.angle) * model.fixedAcceleration
+        accelY = Math.sin(model.angle) * model.fixedAcceleration
         if (currentlyPressedKeys["w"]>0 || currentlyPressedKeys["ArrowUp"]>0){
-            console.log("w")
-            model.ax = Math.cos(model.angle) * model.fixedAcceleration
-            model.vx = model.vx + model.ax * elapsed
-            model.x =  model.x + model.vx * elapsed
-
-            model.ay = Math.sin(model.angle) * model.fixedAcceleration
-            model.vy = model.vy + model.ay * elapsed
-            model.y =  model.y + model.vy * elapsed
+            model.vx = model.vx + accelX * elapsed
+            model.vy = model.vy + accelY * elapsed
         }
         else if (currentlyPressedKeys["s"]>0 || currentlyPressedKeys["ArrowDown"]>0){
-            model.ax = Math.cos(model.angle) * model.fixedAcceleration
-            model.vx = model.vx + model.ax * elapsed
-            model.x0 =  model.x0 + model.vx * elapsed
+            model.vx = model.vx - accelX * elapsed
+            model.vy = model.vy - accelY * elapsed
+        }
+        model.x =  model.x + model.vx * elapsed
+        model.y =  model.y + model.vy * elapsed
 
-            model.ay = Math.sin(model.angle) * model.fixedAcceleration
-            model.vy = model.vy + model.ay * elapsed
-            model.y0 =  model.y0 + model.vy * elapsed
+
+
+        if (currentlyPressedKeys["a"]>0 || currentlyPressedKeys["ArrowLeft"]>0){
+            model.angularVelocity = model.angularVelocity + model.fixedAngularAcceleration * elapsed
         }
-        if (currentlyPressedKeys[""]>0){
-            model.angle += model.fixedAngularAcceleration
-        } else if (currentlyPressedKeys[""]>0){
-            model.angle -= model.fixedAngularAcceleration
+        else if (currentlyPressedKeys["d"]>0 || currentlyPressedKeys["ArrowRight"]>0){
+            model.angularVelocity = model.angularVelocity - model.fixedAngularAcceleration * elapsed
         }
-        if (currentlyPressedKeys[""]>0){
-            model.ax = 0
-            model.ay = 0
+        model.angle = model.angle + model.angularVelocity * elapsed
+
+        if (model.x<(-canvas.width/2)){
+            model.x = -model.x
+        } else if (model.x>(canvas.width/2)){
+            model.x = -model.x
+        }
+        if (model.y<(-canvas.height/2)){
+            model.y = -model.y
+        }else if (model.y>(canvas.height/2)){
+            model.y = -model.y
+        }
+
+        if (currentlyPressedKeys[" "]>0){
+            console.log("SHTAP")
             model.vx = 0
             model.vy = 0
-            model.x0 = 0
-            model.y0 = 0
+            model.angularVelocity = 0
+
+            model.vx = 0
+            model.vy = 0
             model.angularVelocity = 0
         }
     }
@@ -291,7 +304,6 @@ model<html>
         }
         ctx.setLineDash([])
     }
-
     function drawShip(){
 
         ctx.beginPath()
@@ -302,7 +314,7 @@ model<html>
         ctx.closePath()
         ctx.stroke()
     }
-    function drawShips() {
+    function drawShips(){
 
         ctx.setTransform(1,0, 0,1, 0,0)
         ctx.translate(model.x0 + model.x ,model.y0 + model.y)
