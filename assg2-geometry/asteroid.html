@@ -39,19 +39,17 @@ model<html>
             'vx': 0,
             'vy': 0,
             'angle': 0,
-            "escorts":6,
-            "escortDistance":10,
+            "escorts":0,
+            "escortDistance":0,
             "bulletsx":[],
             "bulletsy":[],
             "bulletsAngle":[],
-            // For Mode 0//jump
-            'fixedJump': 20, // 20 pix/s
-            'fixedTurn': 15, // 15 deg for each keyPress
-            // For Mode 1//move
-            'Velocity': 20, // 20 pix/s
-            'angleVelocity': 180, // 1 turn in 2s
-            // For Mode 2
-            'fixedAcceleration': 0.1 // 0.1 pix/s velocity if accelerate for 1s
+
+            'vx': 0, // 20 pix/s
+            'vy': 0, // 20 pix/s
+            'angularVelocity': 0, // 1 turn in 2s
+            'fixedAcceleration': 0.1, // 0.1 pix/s velocity if accelerate for 1s
+            'fixedAngularAcceleration': 0.1
         }
     }
 
@@ -91,14 +89,11 @@ model<html>
                                 .max(+50)
                                 .step(0.1)
                                 .onChange(onParamsChange)//.listen()
-        gui.add(model,'angleVelocity')  .min(0)
-                                        .max(720)
+        gui.add(model,'angularVelocity')  .min(0)
+                                        .max(10)
                                         .step(0.1)
                                         .onChange(onParamsChange) // 720 deg max in 1s
-        gui.add(model,'fixedAcceleration')  .min(0)
-                                            .max(+50)
-                                            .step(0.1)
-                                            .onChange(onParamsChange)
+
 
         gui.add(model,'escorts')    .min(2)
                                     .max(10)
@@ -137,7 +132,8 @@ model<html>
 
         // Put your code here
         currentlyPressedKeys[event.key]=(event.keyCode)
-
+        console.log(event.key , ":" , event.keyCode)
+        /*
         if (model["mode"]==0) {
             console.log("Discrete")
             for (key in currentlyPressedKeys){
@@ -174,15 +170,15 @@ model<html>
                 }
             }
         }
-
+        */
         // Handle single key presses (for example for firing the gun)
         if (event.keyCode == 32) { // " "
             console.log('ATACK ATACK ATACK')
         }
-        draw()
+        //draw()
     }
     function onKeyUp(event) {
-        currentlyPressedKeys = {}
+        currentlyPressedKeys[event.key] = -1
     }
 
     /* ### Timing and main loop ### */
@@ -201,24 +197,48 @@ model<html>
     }
     // Timer callback for animations
     function onTick() {
-        if (model.mode>0) {
-            updateTime()
-            animate();
-            draw();
-        }
+        updateTime()
+        animate();
+        draw();
         requestAnimFrame(onTick);
     }
     // To animate the ship, check the keyboard state by polling
     function animate() {
 
-        if (model.mode==1) {
-            // React to key state in mode 1
-        }
+        console.log("Animate")
+        if (currentlyPressedKeys["w"]>0 || currentlyPressedKeys["ArrowUp"]>0){
+            console.log("w")
+            model.ax = Math.cos(model.angle) * model.fixedAcceleration
+            model.vx = model.vx + model.ax * elapsed
+            model.x =  model.x + model.vx * elapsed
 
-        if (model.mode==2) {
-            // React to key state in mode 2
+            model.ay = Math.sin(model.angle) * model.fixedAcceleration
+            model.vy = model.vy + model.ay * elapsed
+            model.y =  model.y + model.vy * elapsed
         }
+        else if (currentlyPressedKeys["s"]>0 || currentlyPressedKeys["ArrowDown"]>0){
+            model.ax = Math.cos(model.angle) * model.fixedAcceleration
+            model.vx = model.vx + model.ax * elapsed
+            model.x0 =  model.x0 + model.vx * elapsed
 
+            model.ay = Math.sin(model.angle) * model.fixedAcceleration
+            model.vy = model.vy + model.ay * elapsed
+            model.y0 =  model.y0 + model.vy * elapsed
+        }
+        if (currentlyPressedKeys[""]>0){
+            model.angle += model.fixedAngularAcceleration
+        } else if (currentlyPressedKeys[""]>0){
+            model.angle -= model.fixedAngularAcceleration
+        }
+        if (currentlyPressedKeys[""]>0){
+            model.ax = 0
+            model.ay = 0
+            model.vx = 0
+            model.vy = 0
+            model.x0 = 0
+            model.y0 = 0
+            model.angularVelocity = 0
+        }
     }
 
     /* ### Drawing ### */
@@ -285,7 +305,7 @@ model<html>
     function drawShips() {
 
         ctx.setTransform(1,0, 0,1, 0,0)
-        ctx.translate(model.x0 - model.y , model.y0 + model.x)
+        ctx.translate(model.x0 + model.x ,model.y0 + model.y)
         ctx.rotate(model["angle"] * Math.PI / 180)
 
         //console.log(model["x"] , model["y"] , model["angle"])
