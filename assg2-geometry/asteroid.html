@@ -39,11 +39,10 @@ model<html>
             'vx': 0,
             'vy': 0,
             'angle': 0,
-            "escorts":0,
-            "escortDistance":0,
-            "bulletsx":[],
-            "bulletsy":[],
-            "bulletsAngle":[],
+
+            "bulletX":NaN,
+            "bulletY":NaN,
+            "bulletAngle":NaN,
 
             'vx': 0, // 20 pix/s
             'vy': 0, // 20 pix/s
@@ -173,9 +172,26 @@ model<html>
         */
         // Handle single key presses (for example for firing the gun)
         if (event.keyCode == 32) { // " "
+            model.bulletAngle = model.angle
+            model.bulletX = model.x0+model.x
+            model.bulletY = model.y0+model.y
+
             console.log('ATACK ATACK ATACK')
+            console.log(model.bulletX)
+            console.log(model.bulletY)
+            console.log(model.bulletAngle)
         }
         //draw()
+        if (currentlyPressedKeys["k"]>0){
+            console.log("SHTAP")
+            model.vx = 0
+            model.vy = 0
+            model.angularVelocity = 0
+
+            model.vx = 0
+            model.vy = 0
+            model.angularVelocity = 0
+        }
     }
     function onKeyUp(event) {
         currentlyPressedKeys[event.key] = -1
@@ -205,11 +221,8 @@ model<html>
     // To animate the ship, check the keyboard state by polling
     function animate() {
 
-        //console.log("Animate")
-        //console.log(model.x , model.y)
-        //console.log(currentlyPressedKeys)
-        accelY = -Math.cos(model.angle) * model.fixedAcceleration
-        accelX = Math.sin(model.angle) * model.fixedAcceleration
+        accelY = -Math.cos(model.angle * Math.PI / 180) * model.fixedAcceleration
+        accelX = Math.sin(model.angle * Math.PI / 180) * model.fixedAcceleration
         if (currentlyPressedKeys["w"]>0 || currentlyPressedKeys["ArrowUp"]>0){
             model.vx = model.vx + accelX * elapsed
             model.vy = model.vy + accelY * elapsed
@@ -221,15 +234,13 @@ model<html>
         model.x =  model.x + model.vx * elapsed
         model.y =  model.y + model.vy * elapsed
 
-
         if (currentlyPressedKeys["a"]>0 || currentlyPressedKeys["ArrowLeft"]>0){
-            //model.angularVelocity = model.angularVelocity + model.fixedAngularAcceleration * elapsed
-            model.angle = model.angle + model.fixedAngularAcceleration * elapsed
+            model.angularVelocity = model.angularVelocity + model.fixedAngularAcceleration * elapsed
         }
         else if (currentlyPressedKeys["d"]>0 || currentlyPressedKeys["ArrowRight"]>0){
-            //model.angularVelocity = model.angularVelocity - model.fixedAngularAcceleration * elapsed
-            model.angle = model.angle - model.fixedAngularAcceleration * elapsed
+            model.angularVelocity = model.angularVelocity - model.fixedAngularAcceleration * elapsed
         }
+        model.angle = model.angle - model.angularVelocity * elapsed
 
         if (model.x<(-canvas.width/2)){
             model.x += canvas.width
@@ -241,18 +252,12 @@ model<html>
         }else if (model.y>(canvas.height/2)){
             model.y -= canvas.height
         }
-
-
-        if (currentlyPressedKeys[" "]>0){
-            console.log("SHTAP")
-            model.vx = 0
-            model.vy = 0
-            model.angularVelocity = 0
-
-            model.vx = 0
-            model.vy = 0
-            model.angularVelocity = 0
+        if (isNaN(model.bulletX) == false){
+            model.bulletY += -10*Math.cos(model.bulletAngle* Math.PI / 180)
+            model.bulletX += 10*Math.sin(model.bulletAngle* Math.PI / 180)
         }
+
+
     }
 
     /* ### Drawing ### */
@@ -305,7 +310,7 @@ model<html>
         }
         ctx.setLineDash([])
     }
-    function drawShip(){
+    /*function drawShip(){
 
         ctx.beginPath()
         ctx.moveTo(y , x+5)
@@ -314,25 +319,35 @@ model<html>
         ctx.lineTo(y - 10 , x + 10)
         ctx.closePath()
         ctx.stroke()
+    }*/
+    function drawBullet(){
+        if (isNaN(model.bulletX) == false){
+            ctx.beginPath();
+            ctx.arc(model.bulletX,model.bulletY , 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+        }
     }
-    function drawShips(){
+    function drawShip(){
 
         ctx.setTransform(1,0, 0,1, 0,0)
-        ctx.translate(model.x0 + model.x ,model.y0 + model.y)
+        ctx.translate(model.x0+model.x ,model.y0+model.y)
         ctx.rotate(model.angle * Math.PI / 180)
+        ctx.scale(0.1,0.1);
 
         //console.log(model["x"] , model["y"] , model["angle"])
-        centerx = 0
-        centery = 0
+        x = 0
+        y = 0
+        //drawShip()
 
-        x = centerx
-        y = centery
+        ctx.drawImage(base_image, x-base_image.width/2, y-base_image.height/2);
+
+
+        /*
         ctx.strokeStyle="black";
         ctx.lineWidth = 2;
 
-        drawShip()
 
-        /*
         escorts = model["escorts"]
         distance = model["escortDistance"]
         for (i = 0; i < escorts; i++) {
@@ -347,12 +362,18 @@ model<html>
         */
     }
     function draw() {
+        base_image = new Image();
+        base_image.src = 'ship.png';
         // Reset transform before clearing the canvas
         ctx.setTransform(1,0,0, 1,0,0)
         ctx.clearRect(0,0,canvas.width,canvas.height)
         //drawGuides() // Remove this function when your ship is OK
         //drawGrid()
-        drawShips()
+        ctx.strokeStyle="red";
+        ctx.fillStyle="red";
+        drawBullet()
+        drawShip()
+
 
     }
     /* ### Initialization ### */
