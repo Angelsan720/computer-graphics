@@ -26,7 +26,7 @@
     var canvas;
     var ctx;
     var w,h;
-   
+
     var params
     function initParams() {
         params = {
@@ -35,12 +35,14 @@
             'a1': 0,
             'a2': 0,
             'a3': 0,
+            "DEBUG":true,
+            "size":50
         }
     }
-   
+
     /* ### GUI ### */
-    var gui;		
-    function initGUI() 
+    var gui;
+    function initGUI()
     {
         gui = new dat.GUI({ autoPlace: true });
 
@@ -53,8 +55,9 @@
         gui.add(params,'a2').min(-80).max(150).step(1).onChange(onParamsChange)
         gui.add(params,'a3').min(0).max(+150).step(0.1)
                             .onChange(onParamsChange)//.listen()
-        
-        //var parent = document.getElementById('controls');      
+        gui.add(params,'size').min(10).max(100).step(10)
+                            .onChange(onParamsChange)//.listen()
+        //var parent = document.getElementById('controls');
         //parent.appendChild(gui.domElement);
     }
     // GUI callback when parameters are changed manually in the GUI
@@ -78,7 +81,7 @@
         // Uncomment this to display key presses to find the keyCodes
         console.log(event)
         event.preventDefault();
-        
+
         // Handle single key presses (for example for firing the gun)
         if (event.keyCode == 67) { // K
             console.log('Pressed "K"')
@@ -86,50 +89,69 @@
     }
     function onKeyUp(event) {
     }
-    
+
 
     /* ### Drawing ### */
-    
-    function drawFrame(ctx, size) {
+
+    function drawFrame(ctx) {
         // Auxiliary function to draw a simple coordinate frame
         ctx.beginPath()
-        // X arrow
-        ctx.moveTo(0,0); ctx.lineTo(size,0)
-        ctx.lineTo(size*0.8,size*0.1); ctx.lineTo(size*0.8,size*-0.1)
-        ctx.lineTo(size,0)
-        // Y arrow
-        ctx.moveTo(0,0); ctx.lineTo(0,size)
-        ctx.lineTo(size*0.1,size*0.8); ctx.lineTo(size*-0.1,size*0.8)
-        ctx.lineTo(0,size)
-        ctx.stroke()
+        if (params.DEBUG){
+
+            //ctx.moveTo(0 , 0)
+            ctx.arc(0 , 0 , 10 , 0, 2 * Math.PI)
+            ctx.stroke()
+
+            // X arrow
+            ctx.moveTo(params.size,0)
+            ctx.lineTo(params.size*0.8,params.size*0.1);
+            ctx.lineTo(params.size*0.8,params.size*-0.1)
+            ctx.lineTo(params.size,0)
+            // Y arrow
+            ctx.moveTo(0,params.size)
+            ctx.lineTo(params.size*0.1,params.size*0.8);
+            ctx.lineTo(params.size*-0.1,params.size*0.8)
+            ctx.lineTo(0,params.size)
+            ctx.stroke()
+        }
     }
-    
+
     function drawArm(ctx) {
-        // TODO
+
+        ctx.translate(params.x0+sizeX, params.y0-sizeY*4)
+        ctx.rotate(-params.a1 * Math.PI / 180)
         ctx.strokeStyle="red";
-        drawFrame(ctx, 30)
-        ctx.rotate(Math.PI/2)
-        ctx.strokeText('TODO: drawArm', 0,0)
+        drawFrame(ctx)
+        ctx.moveTo(sizeX * 6 , sizeY * 1.5);
+        ctx.lineTo(-sizeX / 2 , sizeY * 1.5)
+        ctx.lineTo(-sizeX / 2 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 6 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 6 , sizeY * 1.5)
+        ctx.stroke()
     }
     function drawUpperLeg(ctx) {
         // TODO
         ctx.strokeStyle="green";
-        drawFrame(ctx, 30)
-        ctx.rotate(Math.PI/2)
-        ctx.strokeText('TODO: drawUpperLeg', 0,0)
+        drawFrame(ctx)
+        //ctx.strokeText('UpperLeg', 0,0)
     }
     function drawLowerLeg(ctx) {
         // TODO
         ctx.strokeStyle="blue";
-        drawFrame(ctx, 30)
-        ctx.rotate(Math.PI/2)
-        ctx.strokeText('TODO: drawLowerLeg', 0,0)
+        drawFrame(ctx)
+        //ctx.strokeText('LowerLeg', 0,0)
     }
     function drawBody(ctx) {
-        // TODO
+        ctx.translate(params.x0, params.y0)
+        ctx.rotate(-90 * Math.PI / 180)
         ctx.strokeStyle="black";
-        drawFrame(ctx, 30)
-        ctx.strokeText('TODO: drawBody', 0,0)
+        drawFrame(ctx)
+        ctx.moveTo(sizeX * 2 , sizeY * 1.5);
+        ctx.lineTo(-sizeX * 2 , sizeY * 1.5)
+        ctx.lineTo(-sizeX * 2 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 2 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 2 , sizeY * 1.5)
+        ctx.stroke()
     }
 
     function drawAll() {
@@ -138,32 +160,38 @@
         ctx.clearRect(0,0,canvas.width,canvas.height)
 
         /* Replace this code by your code */
+
+        sizeX = params.size
+        sizeY = params.size/2
+
         ctx.save()
-        ctx.translate(50, 50)
-        drawArm(ctx)
-        ctx.restore()
-        
-        ctx.save()
-        ctx.translate(100, 50)
-        drawUpperLeg(ctx)
-        ctx.restore()
-        
-        ctx.save()
-        ctx.translate(150, 50)
-        drawLowerLeg(ctx)
-        ctx.restore()
-        
-        ctx.save()
-        ctx.translate(params.x0, 250)
         drawBody(ctx)
         ctx.restore()
+
+        sizeX = sizeX / 2
+        sizeY = sizeY / 2
+
+        ctx.save()
+        drawArm(ctx)
+        ctx.restore()
+
+        ctx.save()
+
+        drawUpperLeg(ctx)
+        ctx.restore()
+
+        ctx.save()
+
+        drawLowerLeg(ctx)
+        ctx.restore()
+
     }
 
-    /* ### Initialization ### */ 
+    /* ### Initialization ### */
     function start() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
-        
+
         w = canvas.width;
         h = canvas.height;
 
@@ -171,7 +199,7 @@
         initParams()
         initGUI()
         initKeys(canvas)
-        
+
         // Draw for the first time
         drawAll()
 
@@ -183,11 +211,11 @@
 <body onload="start();">
     <h2>Scenegraph</h2>
     <table><tbody><tr>
-    
+
     <td>
     <table><tbody>
     <tr>
-    <td><canvas id="canvas" width="300" height="300"></canvas></td>
+    <td><canvas id="canvas" width="500" height="500"></canvas></td>
     </tr>
     <tr>
     <td>Canvas</td>
@@ -197,6 +225,6 @@
     </tr>
     </tbody></table>
     </td>
-    
+
 </body>
-</html>   
+</html>
