@@ -89,11 +89,11 @@ model<html>
                                 .max(+50)
                                 .step(0.1)
                                 .onChange(onParamsChange)//.listen()
+                                /*
         gui.add(model,'angularVelocity')  .min(0)
                                         .max(10)
                                         .step(0.1)
                                         .onChange(onParamsChange) // 720 deg max in 1s
-
 
         gui.add(model,'escorts')    .min(2)
                                     .max(10)
@@ -104,7 +104,7 @@ model<html>
                                         .max(20)
                                         .step(1)
                                         .onChange(onParamsChange)//.listen()
-
+        */
 
     }
     // GUI callback when parameters are changed manually in the GUI
@@ -208,8 +208,8 @@ model<html>
         //console.log("Animate")
         //console.log(model.x , model.y)
         //console.log(currentlyPressedKeys)
-        accelX = -Math.cos(model.angle) * model.fixedAcceleration
-        accelY = Math.sin(model.angle) * model.fixedAcceleration
+        accelY = -Math.cos(model.angle) * model.fixedAcceleration
+        accelX = Math.sin(model.angle) * model.fixedAcceleration
         if (currentlyPressedKeys["w"]>0 || currentlyPressedKeys["ArrowUp"]>0){
             model.vx = model.vx + accelX * elapsed
             model.vy = model.vy + accelY * elapsed
@@ -222,25 +222,26 @@ model<html>
         model.y =  model.y + model.vy * elapsed
 
 
-
         if (currentlyPressedKeys["a"]>0 || currentlyPressedKeys["ArrowLeft"]>0){
-            model.angularVelocity = model.angularVelocity + model.fixedAngularAcceleration * elapsed
+            //model.angularVelocity = model.angularVelocity + model.fixedAngularAcceleration * elapsed
+            model.angle = model.angle + model.fixedAngularAcceleration * elapsed
         }
         else if (currentlyPressedKeys["d"]>0 || currentlyPressedKeys["ArrowRight"]>0){
-            model.angularVelocity = model.angularVelocity - model.fixedAngularAcceleration * elapsed
+            //model.angularVelocity = model.angularVelocity - model.fixedAngularAcceleration * elapsed
+            model.angle = model.angle - model.fixedAngularAcceleration * elapsed
         }
-        model.angle = model.angle + model.angularVelocity * elapsed
 
         if (model.x<(-canvas.width/2)){
-            model.x = -model.x
+            model.x += canvas.width
         } else if (model.x>(canvas.width/2)){
-            model.x = -model.x
+            model.x -= canvas.width
         }
         if (model.y<(-canvas.height/2)){
-            model.y = -model.y
+            model.y += canvas.height
         }else if (model.y>(canvas.height/2)){
-            model.y = -model.y
+            model.y -= canvas.height
         }
+
 
         if (currentlyPressedKeys[" "]>0){
             console.log("SHTAP")
@@ -318,7 +319,7 @@ model<html>
 
         ctx.setTransform(1,0, 0,1, 0,0)
         ctx.translate(model.x0 + model.x ,model.y0 + model.y)
-        ctx.rotate(model["angle"] * Math.PI / 180)
+        ctx.rotate(model.angle * Math.PI / 180)
 
         //console.log(model["x"] , model["y"] , model["angle"])
         centerx = 0
@@ -331,6 +332,7 @@ model<html>
 
         drawShip()
 
+        /*
         escorts = model["escorts"]
         distance = model["escortDistance"]
         for (i = 0; i < escorts; i++) {
@@ -342,6 +344,7 @@ model<html>
 
             drawShip()
         }
+        */
     }
     function draw() {
         // Reset transform before clearing the canvas
