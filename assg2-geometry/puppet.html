@@ -35,7 +35,7 @@
             'a1': 0,
             'a2': 0,
             'a3': 0,
-            "DEBUG":true,
+            "DEBUG":false,
             "size":50
         }
     }
@@ -55,8 +55,8 @@
         gui.add(params,'a2').min(-80).max(150).step(1).onChange(onParamsChange)
         gui.add(params,'a3').min(0).max(+150).step(0.1)
                             .onChange(onParamsChange)//.listen()
-        gui.add(params,'size').min(10).max(100).step(10)
-                            .onChange(onParamsChange)//.listen()
+        //gui.add(params,'size').min(10).max(100).step(10)
+        //                    .onChange(onParamsChange)//.listen()
         //var parent = document.getElementById('controls');
         //parent.appendChild(gui.domElement);
     }
@@ -117,31 +117,60 @@
     }
 
     function drawArm(ctx) {
-
-        ctx.translate(params.x0+sizeX, params.y0-sizeY*4)
-        ctx.rotate(-params.a1 * Math.PI / 180)
+        sizeX = params.size/2
+        sizeY = params.size/4
+        ctx.translate(params.size , params.size/2)
+        ctx.rotate((180-params.a1) * Math.PI / 180)
         ctx.strokeStyle="red";
         drawFrame(ctx)
-        ctx.moveTo(sizeX * 6 , sizeY * 1.5);
+        ctx.moveTo(sizeX * 4 , sizeY * 1.5);
         ctx.lineTo(-sizeX / 2 , sizeY * 1.5)
         ctx.lineTo(-sizeX / 2 , -sizeY * 1.5)
-        ctx.lineTo(sizeX * 6 , -sizeY * 1.5)
-        ctx.lineTo(sizeX * 6 , sizeY * 1.5)
+        ctx.lineTo(sizeX * 4 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 4 , sizeY * 1.5)
         ctx.stroke()
     }
     function drawUpperLeg(ctx) {
         // TODO
         ctx.strokeStyle="green";
+        sizeX = params.size/2
+        sizeY = params.size/4
+        ctx.translate(-(params.size*2),params.size/2)
+        ctx.rotate((180-params.a2) * Math.PI / 180)
         drawFrame(ctx)
+        ctx.moveTo(sizeX * 4 , sizeY * 1.5);
+        ctx.lineTo(-sizeX / 2 , sizeY * 1.5)
+        ctx.lineTo(-sizeX / 2 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 4 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 4 , sizeY * 1.5)
+        ctx.stroke()
         //ctx.strokeText('UpperLeg', 0,0)
     }
     function drawLowerLeg(ctx) {
-        // TODO
+
         ctx.strokeStyle="blue";
+        sizeX = params.size/2
+        sizeY = params.size/4
+        ctx.translate(sizeX * 4 , 0)
+        ctx.rotate((params.a3) * Math.PI / 180)
         drawFrame(ctx)
-        //ctx.strokeText('LowerLeg', 0,0)
+        ctx.moveTo(sizeX * 1 , sizeY * 1.5);
+        ctx.lineTo(-sizeX / 2 , sizeY * 1.5)
+        ctx.lineTo(-sizeX / 2 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 1 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 1 , sizeY * 1.5)
+
+        ctx.moveTo(sizeX * 1 , -sizeY * 1.5)
+        ctx.lineTo(sizeX * 1 , -sizeY * 1.5 * 2)
+        ctx.lineTo(sizeX / 2 , -sizeY * 1.5 * 2)
+        ctx.lineTo(sizeX / 2 , -sizeY * 1.5)
+
+        ctx.stroke()
+
     }
     function drawBody(ctx) {
+        sizeX = params.size
+        sizeY = params.size/2
         ctx.translate(params.x0, params.y0)
         ctx.rotate(-90 * Math.PI / 180)
         ctx.strokeStyle="black";
@@ -151,6 +180,25 @@
         ctx.lineTo(-sizeX * 2 , -sizeY * 1.5)
         ctx.lineTo(sizeX * 2 , -sizeY * 1.5)
         ctx.lineTo(sizeX * 2 , sizeY * 1.5)
+
+        ctx.moveTo(params.size*2.8 + 40,0);
+        ctx.arc(params.size*2.8,0,40,0,2*Math.PI)
+
+        ctx.moveTo(params.size*2.8 + 7 ,30);
+        ctx.arc(params.size*2.8,30,7,0,2*Math.PI)
+
+        ctx.moveTo(params.size*2.8,0);
+        ctx.lineTo(
+            params.size*2.8+40*Math.cos(120*Math.PI/180),
+            40*Math.sin(120*Math.PI/180)
+        )
+
+        ctx.moveTo(params.size*2.8,0);
+        ctx.lineTo(
+            params.size*2.8+40*Math.cos(130*Math.PI/180),
+            40*Math.sin(130*Math.PI/180)
+        )
+
         ctx.stroke()
     }
 
@@ -160,30 +208,18 @@
         ctx.clearRect(0,0,canvas.width,canvas.height)
 
         /* Replace this code by your code */
-
-        sizeX = params.size
-        sizeY = params.size/2
-
-        ctx.save()
         drawBody(ctx)
-        ctx.restore()
-
-        sizeX = sizeX / 2
-        sizeY = sizeY / 2
 
         ctx.save()
-        drawArm(ctx)
-        ctx.restore()
 
+        drawArm(ctx)
+
+        ctx.restore()
         ctx.save()
 
         drawUpperLeg(ctx)
-        ctx.restore()
-
-        ctx.save()
 
         drawLowerLeg(ctx)
-        ctx.restore()
 
     }
 
