@@ -48,7 +48,8 @@ model<html>
             'vy': 0, // 20 pix/s
             'angularVelocity': 0, // 1 turn in 2s
             'fixedAcceleration': 100, // 0.1 pix/s velocity if accelerate for 1s
-            'fixedAngularAcceleration': -100
+            'fixedAngularAcceleration': -100,
+            'age':-1
         }
     }
 
@@ -115,6 +116,7 @@ model<html>
 
         // Put your code here
         currentlyPressedKeys[event.key]=(event.keyCode)
+        //for discrete movement
         //console.log(event.key , ":" , event.keyCode)
         /*
         if (model["mode"]==0) {
@@ -155,29 +157,29 @@ model<html>
         }
         */
         // Handle single key presses (for example for firing the gun)
-        if (event.keyCode == 32) { // " "
+        if ((event.keyCode == 32)&&(isNaN(model.bulletX) == true)) { // " "
+            model.age = new Date().getTime() / 1000
             model.bulletAngle = model.angle
+            //draw the bullet relative to the canvas and not the ship
             model.bulletX = model.x0+model.x
             model.bulletY = model.y0+model.y
 
-            console.log('ATACK ATACK ATACK')
-            console.log(model.bulletX)
-            console.log(model.bulletY)
-            console.log(model.bulletAngle)
+            //console.log('ATACK ATACK ATACK')
+            //console.log(model.bulletX)
+            //console.log(model.bulletY)
+            //console.log(model.bulletAngle)
         }
         //draw()
         if (currentlyPressedKeys["k"]>0){
-            console.log("SHTAP")
-            model.vx = 0
-            model.vy = 0
-            model.angularVelocity = 0
-
+            //Stop the ship
+            //console.log("SHTAP")
             model.vx = 0
             model.vy = 0
             model.angularVelocity = 0
         }
     }
     function onKeyUp(event) {
+        //set the key to not regster
         currentlyPressedKeys[event.key] = -1
     }
 
@@ -205,26 +207,34 @@ model<html>
     // To animate the ship, check the keyboard state by polling
     function animate() {
 
+        //Y is negative X
         accelY = -Math.cos(model.angle * Math.PI / 180) * model.fixedAcceleration
+        //X is Y
         accelX = Math.sin(model.angle * Math.PI / 180) * model.fixedAcceleration
-        if (currentlyPressedKeys["w"]>0 || currentlyPressedKeys["ArrowUp"]>0){
+
+        //give the ship acceleration
+        if (currentlyPressedKeys["i"]>0 || currentlyPressedKeys["ArrowUp"]>0){
             model.vx = model.vx + accelX * elapsed
             model.vy = model.vy + accelY * elapsed
         }
-        else if (currentlyPressedKeys["s"]>0 || currentlyPressedKeys["ArrowDown"]>0){
+        else if (currentlyPressedKeys["k"]>0 || currentlyPressedKeys["ArrowDown"]>0){
             model.vx = model.vx - accelX * elapsed
             model.vy = model.vy - accelY * elapsed
         }
+        //Always move if theres a velocity
         model.x =  model.x + model.vx * elapsed
         model.y =  model.y + model.vy * elapsed
 
 
-        if (currentlyPressedKeys["a"]>0 || currentlyPressedKeys["ArrowLeft"]>0){
+        //turn to port
+        if (currentlyPressedKeys["j"]>0 || currentlyPressedKeys["ArrowLeft"]>0){
+            model.angle = model.angle + model.fixedAngularAcceleration * elapsed
+        }
+        //turn to starboard
+        else if (currentlyPressedKeys["l"]>0 || currentlyPressedKeys["ArrowRight"]>0){
             model.angle = model.angle - model.fixedAngularAcceleration * elapsed
         }
-        else if (currentlyPressedKeys["d"]>0 || currentlyPressedKeys["ArrowRight"]>0){
-            model.angle = model.angle - model.fixedAngularAcceleration * elapsed
-        }
+        //continuous angular velocity
         /*
         if (currentlyPressedKeys["a"]>0 || currentlyPressedKeys["ArrowLeft"]>0){
             model.angularVelocity = model.angularVelocity - model.fixedAngularAcceleration * elapsed
@@ -235,6 +245,7 @@ model<html>
         model.angle = model.angle - model.angularVelocity * elapsed
         */
 
+        //warp to the other side of the canvas
         if (model.x<(-canvas.width/2)){
             model.x += canvas.width
         } else if (model.x>(canvas.width/2)){
@@ -245,11 +256,14 @@ model<html>
         }else if (model.y>(canvas.height/2)){
             model.y -= canvas.height
         }
+        //shoot a bullet
         if (isNaN(model.bulletX) == false){
-            model.bulletY += -10*Math.cos(model.bulletAngle* Math.PI / 180)
-            model.bulletX += 10*Math.sin(model.bulletAngle* Math.PI / 180)
+            model.bulletY += -5*Math.cos(model.bulletAngle* Math.PI / 180)
+            model.bulletX += 5*Math.sin(model.bulletAngle* Math.PI / 180)
         }
-
+        if ((new Date().getTime() / 1000 - model.age)>2){
+            model.bulletX = NaN//kill the bullet
+        }
 
     }
 
@@ -260,7 +274,6 @@ model<html>
 
         // Define transformation before drawing the guides
         ctx.setTransform(1,0, 0,1, 0,0)
-
 
         ctx.beginPath()
         ctx.rect(model.x0-5, model.y0-5,10,10)
@@ -314,12 +327,13 @@ model<html>
         ctx.stroke()
     }*/
     function drawBullet(){
-        if (isNaN(model.bulletX) == false){
+        if (isNaN(model.bulletX) == false){//render if the bullet is alive
             ctx.beginPath();
             ctx.arc(model.bulletX,model.bulletY , 5, 0, 2 * Math.PI);
             ctx.fill();
             ctx.stroke();
         }
+
     }
     function drawShip(){
 
@@ -335,7 +349,8 @@ model<html>
 
         ctx.drawImage(base_image, x-base_image.width/2, y-base_image.height/2);
 
-
+        //ignore below
+        //I was having fun
         /*
         ctx.strokeStyle="black";
         ctx.lineWidth = 2;
@@ -362,9 +377,10 @@ model<html>
         ctx.clearRect(0,0,canvas.width,canvas.height)
         //drawGuides() // Remove this function when your ship is OK
         //drawGrid()
+        //the bullets come from underneath the ship
+        drawBullet()
         ctx.strokeStyle="red";
         ctx.fillStyle="red";
-        drawBullet()
         drawShip()
 
 

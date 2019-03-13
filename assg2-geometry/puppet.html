@@ -117,12 +117,13 @@
     }
 
     function drawArm(ctx) {
+        ctx.strokeStyle="red";
         sizeX = params.size/2
         sizeY = params.size/4
         ctx.translate(params.size , params.size/2)
         ctx.rotate((180-params.a1) * Math.PI / 180)
-        ctx.strokeStyle="red";
         drawFrame(ctx)
+
         ctx.moveTo(sizeX * 4 , sizeY * 1.5);
         ctx.lineTo(-sizeX / 2 , sizeY * 1.5)
         ctx.lineTo(-sizeX / 2 , -sizeY * 1.5)
@@ -131,13 +132,14 @@
         ctx.stroke()
     }
     function drawUpperLeg(ctx) {
-        // TODO
+
         ctx.strokeStyle="green";
         sizeX = params.size/2
         sizeY = params.size/4
         ctx.translate(-(params.size*2),params.size/2)
         ctx.rotate((180-params.a2) * Math.PI / 180)
         drawFrame(ctx)
+
         ctx.moveTo(sizeX * 4 , sizeY * 1.5);
         ctx.lineTo(-sizeX / 2 , sizeY * 1.5)
         ctx.lineTo(-sizeX / 2 , -sizeY * 1.5)
@@ -154,6 +156,7 @@
         ctx.translate(sizeX * 4 , 0)
         ctx.rotate((params.a3) * Math.PI / 180)
         drawFrame(ctx)
+
         ctx.moveTo(sizeX * 1 , sizeY * 1.5);
         ctx.lineTo(-sizeX / 2 , sizeY * 1.5)
         ctx.lineTo(-sizeX / 2 , -sizeY * 1.5)
@@ -169,12 +172,13 @@
 
     }
     function drawBody(ctx) {
+        ctx.strokeStyle="black";
         sizeX = params.size
         sizeY = params.size/2
         ctx.translate(params.x0, params.y0)
         ctx.rotate(-90 * Math.PI / 180)
-        ctx.strokeStyle="black";
         drawFrame(ctx)
+
         ctx.moveTo(sizeX * 2 , sizeY * 1.5);
         ctx.lineTo(-sizeX * 2 , sizeY * 1.5)
         ctx.lineTo(-sizeX * 2 , -sizeY * 1.5)
@@ -208,17 +212,22 @@
         ctx.clearRect(0,0,canvas.width,canvas.height)
 
         /* Replace this code by your code */
+        //move to body coords
         drawBody(ctx)
 
+        //save body coords
         ctx.save()
 
+        //move to arm coords and draw
         drawArm(ctx)
 
+        //return to body coords
         ctx.restore()
-        ctx.save()
 
+        //go to upperleg coords and draw
         drawUpperLeg(ctx)
 
+        //go to lower leg coords
         drawLowerLeg(ctx)
 
     }
