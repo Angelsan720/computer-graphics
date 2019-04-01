@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>three.js webgl - template</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    canvas {
+      border: solid 1px black;
+    }
+  </style>
+</head>
+<script src="lib/three.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/controls/FlyControls.js"></script>
+<script src="lib/dat.gui.js"></script>
+<script src="axisHelpers.js"></script>
+<script>
+  // Declare these variables as global variables
+  // to make it easy to visualize and debug in the console
+  // (Normally, we should keep them local)
+  var camera, scene, renderer;
+  var geometry, material, mesh;
+
+  var params = {
+    x: 0,
+    y: 0,
+    z: 0,
+    sx: 1.0001,
+    sy: 1.0001,
+    sz: 1.0001,
+    rx: 0,
+    ry: 0,
+    rz: 0,
+    showPlane: false,
+    showGrid: true,
+    showAxis2: true,
+    showOtherViews: true
+  }
+  var gui;
+
+  function initGUI() {
+    gui = new dat.GUI();
+
+    gui.add(params, 'x').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'y').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'z').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'sx').min(0.0).max(3.0).step(0.1).onChange(update);
+    gui.add(params, 'sy').min(0.0).max(3.0).step(0.1).onChange(update);
+    gui.add(params, 'sz').min(0.0).max(3.0).step(0.1).onChange(update);
+    gui.add(params, 'rx').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'ry').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'rz').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'showPlane').onChange(update);
+    gui.add(params, 'showGrid').onChange(update);
+    gui.add(params, 'showAxis2').onChange(update);
+    gui.add(params, 'showOtherViews').onChange(update);
+  }
+
+  function update() {
+    mesh.position.set(params.x, params.y, params.z)
+    mesh.scale.set(params.sx, params.sy, params.sz)
+    mesh.rotation.set(params.rx / 180 * Math.PI, params.ry / 180 * Math.PI, params.rz / 180 * Math.PI)
+
+    plane.visible = params.showPlane;
+    planeEdges.visible = params.showGrid;
+    planeGrid.visible = params.showGrid;
+    axisHelper2.visible = params.showAxis2;
+    axisHelper2.position.set(params.x, params.y, params.z)
+      //axisHelper2.setSize(Math.max(params.sx,params.sy,params.sz)*75)
+    axisHelper2.scale.set(params.sx, params.sy, params.sz)
+    axisHelper2.rotation.set(params.rx / 180 * Math.PI, params.ry / 180 * Math.PI, params.rz / 180 * Math.PI)
+
+    topView.div.style.display = (params.showOtherViews ? "inline" : "none");
+    frontView.div.style.display = (params.showOtherViews ? "inline" : "none");
+
+    render()
+  }
+
+
+
+  function init() {
+    // ### 1. Create renderer and bind it to the canvas
+    canvas = document.getElementById("canvas")
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      preserveDrawingBuffer: true
+    });
+    //renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
+    //document.body.appendChild(renderer.domElement)
+    renderer.setClearColor(0xf0ffff)
+      //renderer.setClearColor(0xffffff)
+
+    // ### 2. Create a scene and add objects to it
+    scene = new THREE.Scene();
+
+    // 2.a: create geometry
+    geometry = new THREE.BoxGeometry(100, 100, 100);
+    //geometry = new THREE.CylinderGeometry(100,100, 150, 16,4, true);
+    //geometry = new THREE.PlaneGeometry(200,200, 5,10);
+    //geometry = new THREE.SphereGeometry(100, 16,10)
+    //geometry = new THREE.TorusKnotGeometry( 100, 30, 100, 16 );
+
+    // 2.b: create material
+    material = new THREE.MeshLambertMaterial({
+      color: 0x4040ff,
+      side: THREE.DoubleSide
+    });
+    //material = new THREE.MeshPhongMaterial( { color: 0xffff00, shininess:40,  side: THREE.DoubleSide } );
+
+    /*
+    // Textured material
+    loader = new THREE.TextureLoader()
+    texture = loader.load('moretextures/uv-grid.png')
+    material = new THREE.MeshBasicMaterial( { map: texture, side: THREE.DoubleSide } );
+    //material = new THREE.MeshLambertMaterial( { map: texture, side: THREE.DoubleSide } );
+    //*/
+
+    // 2.c: create mesh and add it to the scene
+    mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // 2.d: add mesh wireframe
+    //meshWireframe = new THREE.WireframeHelper( mesh, 0x0000ff );
+    meshWireframe = new THREE.EdgesHelper(mesh, 0x0000ff);
+    meshWireframe.material.linewidth = 3
+    scene.add(meshWireframe)
+
+    // 2.e: add other helpers
+    planeGeometry = new THREE.PlaneGeometry(400, 400, 2, 2); // This is XY plane
+    planeMaterial = new THREE.MeshBasicMaterial({
+      color: 0xc0c0c0,
+      opacity: 0.5,
+      transparent: true,
+      side: THREE.DoubleSide
+    });
+    //planeMaterial = new THREE.MeshBasicMaterial( {color: 0xc0c0c0, side: THREE.DoubleSide} );
+    plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.set(90 / 180 * Math.PI, 0, 0); // Rotate plane to get XZ plane
+    scene.add(plane);
+
+    planeEdges = new THREE.EdgesHelper( plane, 0xc000c0 );
+    planeEdges.material.linewidth = 2;
+    scene.add(planeEdges);
+
+    planeGrid = new THREE.GridHelper(200, 20); // Directly in XZ plane
+    planeGrid.material.linewidth = 1;
+    scene.add(planeGrid);
+
+    // Use custom axis (see axisHelpers.js)
+    axisHelper = new THREE.ArrowAxisHelper(100, 2);
+    scene.add(axisHelper);
+
+    axisHelper2 = new THREE.CylinderAxisHelper(75, 5);
+    //axisHelper2 = new THREE.CylinderAxisHelper(75, 5, 0.2, 1.5, 6);
+    scene.add(axisHelper2);
+
+    // ### 3. Add lights to the scene
+    ambientLight = new THREE.AmbientLight(0x404040);
+    scene.add(ambientLight)
+
+    var pointLight = new THREE.PointLight(0xffffff)
+    pointLight.position.set(300, 500, 250)
+    scene.add(pointLight)
+
+    // ### 4. Create camera
+
+    camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 1, 2000);
+    camera.position.set(100, 150, 150)
+    camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+    // ### 5. Add controls
+    //*
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.addEventListener('change', render); // add this only if there is no animation loop (requestAnimationFrame)
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.10;
+    controls.enableZoom = true;
+    controls.rotateSpeed = 0.1;
+    //*/
+    /* // If you use FlyControls, you need to uncomment controls.update in animate
+    controls = new THREE.FlyControls( camera, renderer.domElement );
+    controls.movementSpeed=100;
+    controls.rollSpeed=0.5;
+    //*/
+
+    topView = {}
+    topView.div = document.getElementById("topView")
+    topView.canvas = document.getElementById("topView-canvas")
+    topView.renderer = new THREE.WebGLRenderer({
+      canvas: topView.canvas,
+      preserveDrawingBuffer: true
+    });
+    topView.renderer.setClearColor(0xffffff)
+    topView.camera = new THREE.OrthographicCamera(-220, 220, 220, -220, 1, 700);
+    //topView.camera = new THREE.PerspectiveCamera( 60, topView.canvas.width/topView.canvas.height, 1,1000 );
+    topView.camera.position.set(0, 400, 0)
+    topView.camera.rotation.set(-Math.PI / 2, 0, 0)
+
+    frontView = {}
+    frontView.div = document.getElementById("frontView")
+    frontView.canvas = document.getElementById("frontView-canvas")
+    frontView.renderer = new THREE.WebGLRenderer({
+      canvas: frontView.canvas,
+      preserveDrawingBuffer: true
+    });
+    frontView.renderer.setClearColor(0xffffff)
+    frontView.camera = new THREE.OrthographicCamera(-220, 220, 220, -220, 1, 1000);
+    //frontView.camera = new THREE.PerspectiveCamera( 40, frontView.canvas.width/frontView.canvas.height, 1,1000 );
+    frontView.camera.position.set(0, 0, 800)
+    frontView.camera.rotation.set(0, 0, 0)
+
+    camera.helper = new THREE.CameraHelper(camera)
+    topView.camera.helper = new THREE.CameraHelper(topView.camera)
+    frontView.camera.helper = new THREE.CameraHelper(frontView.camera)
+    camera.helper.material.color.setRGB(0, 0, 255);
+    //scene.add(camera.helper)
+    //scene.add(topView.camera.helper)
+    //scene.add(frontView.camera.helper)
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    //mesh.rotation.x += 0.005;
+    //mesh.rotation.y += 0.01;
+
+    // Required only for FlyControls:
+    elapsed = 1 / 30;
+    controls.update(elapsed);
+
+    render()
+  }
+
+  function render() {
+    var tmp = camera.helper.visible;
+    camera.helper.visible = false;
+    renderer.render(scene, camera);
+    camera.helper.visible = tmp;
+
+    topView.renderer.render(scene, topView.camera);
+    frontView.renderer.render(scene, frontView.camera);
+  }
+
+  function start() {
+    initGUI()
+    init();
+
+    update();
+    //render();
+    //animate();
+  }
+</script>
+
+<body onload='start();'>
+
+  <div style="float: left;">
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <br>3d Scene
+    <br>
+    <div id="topView">
+      <canvas id="topView-canvas" width="200" height="200"></canvas>
+    </div>
+    <div id="frontView">
+      <canvas id="frontView-canvas" width="200" height="200"></canvas>
+    </div>
+    <br>Use <b>Mouse</b> to orbit around the scene
+    <br>Use <b>GUI.dat</b> to transform/move the cube and to show/hide helpers
+    <br>Simplified version <a href='cube_simple.html'>cube_simple.html</a>
+  </div>
+
+</body>
+
+</html>

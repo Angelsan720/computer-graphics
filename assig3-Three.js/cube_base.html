@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>three.js webgl - template</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    canvas {
+      border: dashed 2px gray;
+    }
+    canvas:focus { /* Make clear when canvas does not listen to keyboard */
+      border: solid 2px black;
+    }
+    kbd { 
+        font-family: Menlo, Monaco, Consolas, "Courier New", monospace;   
+        font-size: 90%; background-color: #ddd;
+        border: solid 1pt black; border-radius: 4px; padding: 0px 4px;
+    }
+  </style>
+</head>
+<script src="lib/three.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/controls/FlyControls.js"></script>
+<script src="js/loaders/OBJLoader.js"></script>
+<script src="lib/dat.gui.js"></script>
+<script>
+  // Declare these variables as global variables
+  // to make it easy to visualize and debug in the console
+  // (Normally, we should keep them local)
+  var camera, scene, renderer;
+  var geometry, material, mesh;
+  var cube;
+
+  var params = {
+    // Robot parameters
+    x: 0,
+    y: 20,
+    z: 0,
+    angle: 0,
+    armPhi: 0,
+    armPsi: 0,
+    // Other
+    showPlane: true,
+    showGrid: true,
+    showAxis: true,
+    showAxis2: true,
+  }
+  
+  /* ### GUI controls ### */
+  var gui = undefined;
+  function initGUI() {
+    gui = new dat.GUI();
+
+    gui.add(params, 'x').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'y').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'z').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'angle').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'armPhi').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'armPsi').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'showPlane').onChange(update);
+    gui.add(params, 'showGrid').onChange(update);
+    gui.add(params, 'showAxis').onChange(update);
+    gui.add(params, 'showAxis2').onChange(update);
+  }
+  function updateGUI(theGui) {
+    if (typeof(theGui)==="undefined") theGui=gui;
+  
+    // Update the GUI display based on current parameters
+    // Source: http://stackoverflow.com/a/29069189
+    for (var i in gui.__controllers) {
+        theGui.__controllers[i].updateDisplay();
+    }
+    // Do recursion to update inside folders
+    for (var f in gui.__folders) {
+        updateGUI(theGui.__folders[f]);
+    }
+  }
+
+  /* ### Keyboard ### */
+  var currentlyPressedKeys = {};
+  function initKeys(canvas) {
+      // Make sure the canvas can receive the key events
+      canvas.setAttribute('tabindex','0');
+      canvas.focus();
+      // Workaround: give the focus back to the canvas when clicked
+      // keyboard events are not received when canvas is not focused
+      canvas.addEventListener('mousedown',function(){canvas.focus()});
+
+      // Register the keyDown and keyUp events
+      canvas.addEventListener( "keydown", onKeyDown, true);
+      canvas.addEventListener( "keyup",   onKeyUp, true);
+  }
+  // Callbacks for discrete key events
+  function onKeyDown(event) {
+      // Uncomment this to display key presses to find the keyCodes
+      console.log(event)
+      event.preventDefault();
+
+      // Handle single key presses (for example for firing the gun)
+      if (event.keyCode == 67) { // K
+          console.log('Pressed key "K"')
+      }
+      
+      // Check key press using event.key (alternative to using keyCode)
+      if (event.key == "ArrowUp") {
+      }
+      if (event.key == "ArrowDown") {
+      }
+      if (event.key == "ArrowRight") {
+        params.angle += 10
+      }
+      if (event.key == "ArrowLeft") {
+        params.angle -= 10
+      }
+      updateGUI() // Update dat.GUI display in case we changed params
+      update()    // Update scene
+  }
+  function onKeyUp(event) {
+  }
+
+  /* ### Some helper functions ### */
+  
+  function degToRad(a) {
+      return a/180*Math.PI;
+  }
+
+  /* ### Main functions: init, update, animate, render... ### */
+
+  function initScene() {
+    // ##### 1. Create renderer and bind it to the canvas #####
+
+    canvas = document.getElementById("canvas")
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      preserveDrawingBuffer: true
+    });
+    //document.body.appendChild(renderer.domElement)
+    renderer.setClearColor(0xf0ffff)
+    //renderer.setClearColor(0xffffff)
+
+
+    // ##### 2. Create a scene and add objects to it #####
+
+    scene = new THREE.Scene();
+
+
+    // PLANE
+    // Created as two objects: a 'solid' plane, and a wireframe plane (grid)
+    planegeom = new THREE.PlaneGeometry(200, 200); // Plane in in XY plane
+    planegeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2))
+    planemat = new THREE.MeshPhongMaterial({
+      color: 0x40ffff, side: THREE.DoubleSide, specular: 0xffffff
+    });
+    plane = new THREE.Mesh(planegeom, planemat)
+    plane.material.linewidth = 1;
+    scene.add(plane);
+    
+    planeGrid = new THREE.GridHelper(200, 20); // Directly in XZ plane
+    planeGrid.material.linewidth = 1;
+    scene.add(planeGrid);
+
+    // XYZ axes (can be disabled in the GUI)
+    axisHelper = new THREE.AxisHelper(100);
+    axisHelper.material.linewidth = 5
+    scene.add(axisHelper);
+
+    axisHelper2 = new THREE.AxisHelper(75);
+    axisHelper2.material.linewidth = 10
+    scene.add(axisHelper2);
+    
+
+    // CUBE
+    cubegeom = new THREE.BoxGeometry(40, 40, 40);
+    cubemat = new THREE.MeshLambertMaterial({
+      color: 0x4040ff,
+      side: THREE.DoubleSide
+    });
+    cube = new THREE.Mesh(cubegeom, cubemat);
+    scene.add(cube);
+
+    // ##### 3. Add lights to the scene #####
+    var ambientLight = new THREE.AmbientLight(0x303030);
+    scene.add(ambientLight)
+
+    var pointLight = new THREE.PointLight(0xffffff)
+    pointLight.position.set(150, 250, 125)
+    scene.add(pointLight)
+    
+    // Add a sphere to be able to see where the point light is located
+    // Not necessary for the light to work, can be disabled in the GUI
+    pointLightGeo = new THREE.SphereGeometry(10, 8,4)
+    pointLightMat = new THREE.MeshBasicMaterial({color:0xffffd0, wireframe:true})
+    pointLightMesh = new THREE.Mesh(pointLightGeo, pointLightMat)
+    pointLightMesh.position.copy(pointLight.position)
+    scene.add(pointLightMesh)
+
+
+    // ##### 4. Create camera #####
+
+    camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 1, 2000);
+    camera.position.set(100, 150, 150)
+    camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+
+    // ##### 5. Add orbit controls #####
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.addEventListener('change', render); // add this only if there is no animation loop (requestAnimationFrame)
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.10;
+    controls.enableZoom = true;
+    controls.enableKeys = false; // Disable keys so we can use them ourselves
+    controls.rotateSpeed = 0.1;
+  }
+  
+  /* Update scene and redraw after changing parameters */
+  function update() {
+  
+      
+    // Your specific code should go here:
+    cube.position.set(params.x, params.y, params.z)
+    cube.rotation.set(0, params.angle / 180 * Math.PI, 0)
+
+
+  
+    // Helpers: plane and axes
+    plane.visible = params.showPlane;
+    planeGrid.visible = params.showGrid;
+    axisHelper.visible = params.showAxis;
+    
+    // axisHelper2 is attached to mesh, just copy its parameters
+    axisHelper2.visible = params.showAxis2;
+    axisHelper2.position.copy(cube.position)
+    axisHelper2.scale.copy(cube.scale)
+    axisHelper2.rotation.copy(cube.rotation)
+                
+    render()
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    //cube.rotation.x += 0.005;
+    //cube.rotation.y += 0.01;
+
+    update();
+    render()
+  }
+
+  function render() {
+    renderer.render(scene, camera);
+  }
+
+  function start() {
+    initGUI()
+    initScene()
+    initKeys(canvas)
+
+    update()
+    render()
+    // Uncomment animate() if there are automatic animations in your scene
+    // animate() 
+  }
+</script>
+
+<body onload='start();'>
+
+  <div style="float: left;">
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <br>3d Scene
+    <br>Use <b>Mouse</b> to orbit around the scene
+    <br>Use <b>Keyboard</b> to rotate the cube on <kbd>&rarr;</kbd> and <kbd>&larr;</kbd>
+    <br>Use <b>GUI.dat</b> on the right to transform/move the cube and to show/hide helpers
+    <br>
+    <br>
+    <small>
+      Based on <a href='cube_simple.html'>cube_simple.html</a>
+      <br>Extended version <a href='cube_extended.html'>cube_extended.html</a>
+    </small>
+  </div>
+
+</body>
+
+</html>

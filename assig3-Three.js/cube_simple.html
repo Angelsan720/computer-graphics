@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>three.js webgl - template</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    canvas {
+      border: dashed 2px gray;
+    }
+    canvas:focus { /* Make clear when canvas does not listen to keyboard */
+      border: solid 2px black;
+    }
+    kbd { 
+        font-family: Menlo, Monaco, Consolas, "Courier New", monospace;   
+        font-size: 90%; background-color: #ddd;
+        border: solid 1pt black; border-radius: 4px; padding: 0px 4px;
+    }
+  </style>
+</head>
+<script src="lib/three.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/controls/FlyControls.js"></script>
+<script src="js/loaders/DDSLoader.js"></script>
+<script src="js/loaders/OBJLoader.js"></script>
+<script src="lib/dat.gui.js"></script>
+<script>
+  // Declare these variables as global variables
+  // to make it easy to visualize and debug in the console
+  // (Normally, we should keep them local)
+  var camera, scene, renderer;
+  var geometry, material, mesh;
+
+
+  var params = {
+    // Cube parameters
+    x: 0,
+    y: 20,
+    z: 0,
+    sx: 1.0001,
+    sy: 1.0001,
+    sz: 1.0001,
+    rx: 0,
+    ry: 0,
+    rz: 0,
+    // Other
+    showPlane: true,
+    showGrid: true,
+    showAxis: true,
+    showAxis2: true
+  }
+  var gui;
+
+  function initGUI() {
+    gui = new dat.GUI();
+
+    gui.add(params, 'x').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'y').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'z').min(-200.0).max(200.0).step(10).onChange(update);
+    gui.add(params, 'sx').min(0.0).max(3.0).step(0.1).onChange(update);
+    gui.add(params, 'sy').min(0.0).max(3.0).step(0.1).onChange(update);
+    gui.add(params, 'sz').min(0.0).max(3.0).step(0.1).onChange(update);
+    gui.add(params, 'rx').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'ry').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'rz').min(-180.0).max(180.0).step(5).onChange(update);
+    gui.add(params, 'showPlane').onChange(update);
+    gui.add(params, 'showGrid').onChange(update);
+    gui.add(params, 'showAxis').onChange(update);
+    gui.add(params, 'showAxis2').onChange(update);
+  }
+  function updateGUI(theGui) {
+    if (typeof(theGui)==="undefined") theGui=gui;
+  
+    // Update the GUI display based on current parameters
+    // Source: http://stackoverflow.com/a/29069189
+    for (var i in gui.__controllers) {
+        theGui.__controllers[i].updateDisplay();
+    }
+    // Do recursion to update inside folders
+    for (var f in gui.__folders) {
+        updateGUI(theGui.__folders[f]);
+    }
+  }
+
+  function update() {
+    mesh.position.set(params.x, params.y, params.z)
+    mesh.scale.set(params.sx, params.sy, params.sz)
+    mesh.rotation.set(params.rx / 180 * Math.PI, params.ry / 180 * Math.PI, params.rz / 180 * Math.PI)
+
+ mesh2.position.set(params.x, params.y, params.z)
+    mesh2.scale.set(params.sx, params.sy, params.sz)
+    mesh2.rotation.set(params.rx / 180 * Math.PI, params.ry / 180 * Math.PI, params.rz / 180 * Math.PI)
+
+    planeGrid.visible = params.showGrid;
+    
+    axisHelper2.visible = params.showAxis2;
+    axisHelper2.position.set(params.x, params.y, params.z)
+    axisHelper2.scale.set(params.sx, params.sy, params.sz)
+    axisHelper2.rotation.set(params.rx / 180 * Math.PI, params.ry / 180 * Math.PI, params.rz / 180 * Math.PI)
+    
+    render()
+  }
+
+  /* ### Keyboard ### */
+  var currentlyPressedKeys = {};
+  function initKeys(canvas) {
+      // Make sure the canvas can receive the key events
+      canvas.setAttribute('tabindex','0');
+      canvas.focus();
+      // Workaround: give the focus back to the canvas when clicked
+      // keyboard events are not received when canvas is not focused
+      canvas.addEventListener('mousedown',function(){canvas.focus()});
+
+      // Register the keyDown and keyUp events
+      canvas.addEventListener( "keydown", onKeyDown, true);
+      canvas.addEventListener( "keyup", onKeyUp, true);
+  }
+  // Callbacks for discrete key events
+  function onKeyDown(event) {
+      // Uncomment this to display key presses to find the keyCodes
+      console.log(event)
+      event.preventDefault();
+
+      // Handle single key presses (for example for firing the gun)
+      if (event.keyCode == 67) { // K
+          console.log('Pressed "K"')
+      }
+      
+      if (event.key == "U") {
+          params.x+=10
+      }
+      if (event.key == "u") {
+          params.x-=10
+      }
+      if (event.key == "I") {
+          params.y+=10
+      }
+      if (event.key == "i") {
+          params.y-=10
+      }
+      if (event.key == "O") {
+          params.z+=10
+      }
+      if (event.key == "o") {
+          params.z-=10
+      }
+      if (event.key == "J") {
+          params.rx+=10
+      }
+      if (event.key == "j") {
+          params.rx-=10
+      }
+      if (event.key == "K") {
+          params.ry+=10
+      }
+      if (event.key == "k") {
+          params.ry-=10
+      }
+      if (event.key == "L") {
+          params.rz+=10
+      }
+      if (event.key == "l") {
+          params.rz-=10
+      }
+            
+      updateGUI()
+      update()
+  }
+  function onKeyUp(event) {
+  }
+
+
+  function degToRad(a) {
+      return a/180*Math.PI;
+  }
+
+
+  function init() {
+    // ##### 1. Create renderer and bind it to the canvas #####
+
+    canvas = document.getElementById("canvas")
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      preserveDrawingBuffer: true
+    });
+    //document.body.appendChild(renderer.domElement)
+    renderer.setClearColor(0xf0ffff)
+    //renderer.setClearColor(0xffffff)
+
+
+    // ##### 2. Create a scene and add objects to it #####
+
+    scene = new THREE.Scene();
+
+    // ### 2.a: create geometry
+    geometry = new THREE.BoxGeometry(40, 40, 40);
+    //geometry = new THREE.TorusGeometry(40,10, 8, 10);
+    //geometry = new THREE.SphereGeometry(40, 16,8);
+
+    // ### 2.b: create material
+    material = new THREE.MeshLambertMaterial({
+      color: 0x4040ff,
+      side: THREE.DoubleSide
+    });
+//     material = new THREE.MeshPhongMaterial({
+//       color: 0x4040ff, specular: 0x00ff00, shininess:2000,
+//       side: THREE.DoubleSide
+//     });
+    
+    // ### 2.c: create mesh and add it to the scene
+    mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+    
+    material2 = new THREE.MeshLambertMaterial({
+      color: 0xff0000,
+      side: THREE.DoubleSide,
+      wireframe: true
+    });
+    mesh2 = new THREE.Mesh(geometry, material2);
+    scene.add(mesh2);
+
+
+    // ### 2.e: add some helpers
+    planeGeometry = new THREE.PlaneGeometry(200, 200); // Plane in in XY plane
+    planeGeometry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2))
+    planeMaterial = new THREE.MeshLambertMaterial({
+      color: 0xc0c0c0,
+      side: THREE.DoubleSide
+    });
+    plane = new THREE.Mesh(planeGeometry, planeMaterial)
+    plane.material.linewidth = 1;
+    scene.add(plane);
+    
+    planeGrid = new THREE.GridHelper(200, 20); // Directly in XZ plane
+    planeGrid.material.linewidth = 1;
+    scene.add(planeGrid);
+
+    axisHelper = new THREE.AxisHelper(100);
+    axisHelper.material.linewidth = 5
+    scene.add(axisHelper);
+
+    axisHelper2 = new THREE.AxisHelper(75);
+    axisHelper2.material.linewidth = 10
+    scene.add(axisHelper2);
+
+    // ##### 3. Add lights to the scene #####
+    ambientLight = new THREE.AmbientLight(0x303030);
+    scene.add(ambientLight)
+
+    var pointLight = new THREE.PointLight(0xffffff)
+    pointLight.position.set(150, 250, 125)
+    scene.add(pointLight)
+    
+    lightGeom = new THREE.BoxGeometry(2,2,2);
+    lightMaterial = new THREE.MeshLambertMaterial({
+      color: 0xffff00,
+      side: THREE.DoubleSide
+    });
+    lightMesh = new THREE.Mesh(lightGeom, lightMaterial)
+    lightMesh.position.set(150, 250, 125)
+    scene.add(lightMesh)
+
+    
+
+
+
+    // ##### 4. Create camera #####
+
+    camera = new THREE.PerspectiveCamera(100, canvas.width / canvas.height, 1, 2000);
+    //camera = new THREE.OrthographicCamera(-200,200, 200,-200, 1, 2000);
+
+    camera.position.set(100, 150, 150)
+    camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+
+    // ##### 5. Add controls #####
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.addEventListener('change', render); // add this only if there is no animation loop (requestAnimationFrame)
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.10;
+    controls.enableZoom = true;
+    controls.enableKeys = false; // Disable keys so we can use them ourselves
+    controls.rotateSpeed = 0.1;
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+
+    //mesh.rotation.x += 0.005;
+    //mesh.rotation.y += 0.01;
+
+    // Required only for FlyControls:
+    elapsed = 1 / 30;
+    controls.update(elapsed);
+
+    update();
+    render()
+  }
+
+  function render() {
+    renderer.render(scene, camera);
+  }
+
+  function start() {
+    initGUI()
+    init();
+    
+    initKeys(canvas)
+
+    update();
+    render();
+    //animate();
+  }
+</script>
+
+<body onload='start();'>
+
+  <div style="float: left;">
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <br>3d Scene
+    <br>Use <b>Mouse</b> to orbit around the scene
+    <br>Use <b>Keyboard</b> to 
+    <br>- translate the cube on scene axes X,Y,Z, with <kbd>u</kbd>, <kbd>i</kbd>, <kbd>o</kbd> (-) and <kbd>U</kbd>, <kbd>I</kbd>, <kbd>O</kbd> (+ with <kbd>Shift</kbd>)
+    <br>- change cube Euler angles around X,Y,Z, with <kbd>j</kbd>, <kbd>k</kbd>, <kbd>l</kbd> (-) and <kbd>J</kbd>, <kbd>K</kbd>, <kbd>L</kbd> (+ with <kbd>Shift</kbd>)
+    <br>Use <b>GUI.dat</b> to transform/move the cube and to show/hide helpers
+    <br>Extended version <a href='cube_extended.html'>cube_extended.html</a>
+  </div>
+
+</body>
+
+</html>
