@@ -30,7 +30,7 @@
   // (Normally, we should keep them local)
   var camera, scene, renderer;
   var geometry, material, mesh;
-  var hedron , thing , robot , teapot;
+  var hedron , thing , body , arm , foreArm , teapot , tetra;
 
   var params = {
 
@@ -50,9 +50,6 @@
   function initGUI() {
     gui = new dat.GUI();
 
-    //gui.add(params, 'x').min(-200.0).max(200.0).step(10).onChange(update);
-    //gui.add(params, 'y').min(-200.0).max(200.0).step(10).onChange(update);
-    //gui.add(params, 'z').min(-200.0).max(200.0).step(10).onChange(update);
     gui.add(params, 'angle').min(-180.0).max(180.0).step(5).onChange(update);
     gui.add(params, 'armPhi').min(-180.0).max(180.0).step(5).onChange(update);
     gui.add(params, 'armPsi').min(-180.0).max(180.0).step(5).onChange(update);
@@ -142,12 +139,12 @@
 
 
 	// Draw all the things
+    drawKnot()
 	drawPlane()
-	drawHedron()
 	drawTeaCup()
-	drawThing()
 	drawRobit()
 	drawAxis()
+    drawTetrahedron()
 
 
 
@@ -185,80 +182,145 @@
     controls.rotateSpeed = 0.1;
   }
 
-  function drawPlane(){
-	  // PLANE
-	  // Created as two objects: a 'solid' plane, and a wireframe plane (grid)
-	  planegeom = new THREE.PlaneGeometry(200, 200); // Plane in in XY plane
-	  planegeom.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2))
-	  planemat = new THREE.MeshPhongMaterial({
-		color: 0x40ffff, side: THREE.DoubleSide, specular: 0xffffff
-	  });
-	  plane = new THREE.Mesh(planegeom, planemat)
-	  plane.material.linewidth = 1;
-	  scene.add(plane);
+  function drawKnot(){
+      geometry = new THREE.TorusKnotGeometry( 30,2.2,217,15,2,3)
+      material = new THREE.MeshBasicMaterial( { color: 0xffff00 })
+      knot = new THREE.Mesh( geometry, material )
+      scene.add( knot )
+      /*
+      var wireframe = new THREE.WireframeGeometry( geometry )
+      var line = new THREE.LineSegments( wireframe );
+      line.material.depthTest = false;
+      line.material.opacity = 0.25;
+      line.material.transparent = true;
 
-	  planeGrid = new THREE.GridHelper(200, 20); // Directly in XZ plane
-	  planeGrid.material.linewidth = 1;
-	  scene.add(planeGrid);
+      scene.add( line )
+      */
+  }
+  function drawPlane(){
+    // PLANE
+	  // Created as two objects: a 'solid' plane, and a wireframe plane (grid)
+    planeGeommetry = new THREE.PlaneGeometry(200, 200); // Plane in in XY plane
+	planeGeommetry.applyMatrix(new THREE.Matrix4().makeRotationX(-Math.PI/2))
+
+    textureLoader = new THREE.TextureLoader()
+    textureLoader.crossOrigin = ''
+    planeTexture = textureLoader.load("moretextures/1.5-UV-Test-Grid.png")
+
+    planeMaterial = new THREE.MeshPhongMaterial({
+            map: planeTexture,
+            side: THREE.DoubleSide,
+            specular: 0xffffff,
+            shininess: 10})
+    plane = new THREE.Mesh(planeGeommetry, planeMaterial)
+    scene.add(plane);
+
+    planeGrid = new THREE.GridHelper(200, 20); // Directly in XZ plane
+    planeGrid.material.linewidth = 1;
+    scene.add(planeGrid);
   }
   function drawAxis(){
 	  // XYZ axes (can be disabled in the GUI)
-	  axisHelper = new THREE.AxisHelper(100);
-	  axisHelper.material.linewidth = 5
-	  scene.add(axisHelper);
+	  mainAxis = new THREE.AxisHelper(100);
+	  mainAxis.material.linewidth = 5
+	  scene.add(mainAxis);
 
-	  axisHelper2 = new THREE.AxisHelper(75);
-	  axisHelper2.material.linewidth = 10
-	  scene.add(axisHelper2);
-	  // XYZ axes (can be disabled in the GUI)
-	  spotAxisHelper = new THREE.AxisHelper(100);
-	  spotAxisHelper.material.linewidth = 5
-	  scene.add(spotAxisHelper);
   }
-  function drawHedron(){
-	  // CUBE
-	  geometry = new THREE.TetrahedronGeometry(40);
-	  material = new THREE.MeshLambertMaterial({
-        color: 0x4040ff,
-        side: THREE.DoubleSide
-      })
-	  hedron = new THREE.Mesh(geometry, material);
-	  scene.add(hedron);
-  }
-
   function drawTeaCup(){
-	  fs = require('fs')
+      teaLoader = new THREE.ObjectLoader()
+      teaLoader.load("models/json/teapot-claraio.json",
+        function(obj){
+            scene.add(obj)
+            obj.scale.set(40,40,40)
+            obj.material.side=THREE.DoubleSide
+            obj.position.set(-50,0,50)})
+  }
+  function drawRobit(){
 
+      bodyGeom = new THREE.BoxGeometry(40,40,40)
+      lowerArmGeom = new THREE.BoxGeometry(30,40,30)
+      upperArmGeom = new THREE.BoxGeometry(20,40,20)
 
-	  teapot = loader.parse( JSON.parse(require("models/json/teapot-claraio.json")) );
-	  scene.add(teapot)
+      lowerArmGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,20,0));
+      upperArmGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,20,0));
+
+      bodyMesh = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+      lowerArmMesh = new THREE.MeshBasicMaterial( { color: 0xff00ff } );
+      upperArmMesh = new THREE.MeshBasicMaterial( { color: 0x00ffff } );
+
+      body = new THREE.Mesh( bodyGeom, bodyMesh )
+      arm = new THREE.Mesh( lowerArmGeom, lowerArmMesh )
+      foreArm = new THREE.Mesh( upperArmGeom, upperArmMesh )
+
+      scene.add(body)
+      scene.add(arm)
+      scene.add(foreArm)
 
   }
-  function drawThing(){}
-  function drawRobit(){}
+  function drawTetrahedron(){
+        tetraMesh = new THREE.Geometry();
+        tetraMesh.vertices = [
+            new THREE.Vector3(  1,1,1 ),
+            new THREE.Vector3(  -1,-1,1),
+            new THREE.Vector3(  -1,1,-1),
+            new THREE.Vector3(  1,-1,-1)]
 
+        tetraMesh.faces = [
+            new THREE.Face3( 0, 1, 2 ),
+            new THREE.Face3( 3, 2, 1 ),
+            new THREE.Face3( 3, 1, 0 ),
+            new THREE.Face3( 3, 0, 2 ),]
+
+        tetraMesh.computeFaceNormals()
+        textureLoader = new THREE.TextureLoader()
+        textureLoader.crossOrigin = ''
+        face = textureLoader.load("moretextures/triangle_texture.png")
+        tetraMaterial = new THREE.MeshBasicMaterial( { color: 0xff00ff ,side: THREE.DoubleSide , faceVertexUvs:[] , map :face} )
+
+        tetraMesh.computeFaceNormals()
+        for(var i = 0; i < tetraMesh.faces.length; i++){
+            tetraMesh.faceVertexUvs[0].push([
+                new THREE.Vector2( 0.5 , 1 ),
+                new THREE.Vector2( 1,0),
+                new THREE.Vector2( 0,0)
+            ]);
+        }
+        tetra = new THREE.Mesh(tetraMesh, tetraMaterial)
+        tetra.scale.set(20,20,20)
+        scene.add(tetra)
+
+  }
   function update() {
-	  /* Update scene and redraw after changing parameters */
-	  coords: [-50,50,-50,-50]
-	  // Your specific code should go here:
-	  hedron.position.set(50,40,50)
-	  hedron.rotation.set(35/ 180 * Math.PI, 0 / 180 * Math.PI, -45/ 180 * Math.PI)
-
-	  //scene.children[9.scale.set(5,5,5)
-	  //teapot.position.set(-50,40,50)
-	  //teapot.rotation.set(0,0,0)
-
-
 	  // Helpers: plane and axes
 	  plane.visible = params.showPlane;
 	  planeGrid.visible = params.showGrid;
-	  axisHelper.visible = params.showMainAxis;
+	  mainAxis.visible = params.showMainAxis;
+      //degToRad(params.angle)
+      body.rotation.set(0,0,0)
+      body.position.set(50,20,50)
 
-    // axisHelper2 is attached to mesh, just copy its parameters
-    axisHelper2.visible = params.showObjectAxis;
-    axisHelper2.position.copy(hedron.position)
-    axisHelper2.scale.copy(hedron.scale)
-    axisHelper2.rotation.copy(hedron.rotation)
+      arm.rotation.set( body.rotation.x,
+                        body.rotation.y,
+                        body.rotation.z+degToRad(params.armPhi))
+      arm.position.set( body.position.x,
+                        body.position.y+10,
+                        body.position.z)
+
+      foreArm.position.set( arm.position.x-30*Math.sin(degToRad(params.armPhi)),
+                            arm.position.y+30*Math.cos(degToRad(params.armPhi)),
+                            arm.position.z)
+      foreArm.rotation.set( arm.rotation.x,
+                            arm.rotation.y,
+                            arm.rotation.z+degToRad(params.armPsi))
+
+      knot.position.set(-50,20,-50)
+      knot.rotation.set(degToRad(90),0,0)
+
+
+      tetra.rotation.set(degToRad(145) , 0 , degToRad(-45))
+      tetra.position.set(50,20,-50)
+      //.position.set
+
 
     render()
   }
