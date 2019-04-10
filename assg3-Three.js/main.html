@@ -34,14 +34,14 @@
 
     var params = {
         // knot parameters
-        material : new THREE.MeshLambertMaterial( { color: 0xffff00 }),
-        wiremesh:false,
+
+        wiremesh:false,//display plane wiremesh
         // Robot parameters
-        x:0,
-        z:0,
-        angle: 0,
-        armPhi: 0,
-        armPsi: 0,
+        x:0,//xcoord
+        z:0,//ycoord
+        angle: 0,//rotation angle
+        armPhi: 0,//arm angle
+        armPsi: 0,//forearm angle
         // Other
         showPlane: true,
         showGrid: false,
@@ -52,7 +52,7 @@
     /* ### GUI controls ### */
     var gui = undefined;
         function initGUI() {
-        gui = new dat.GUI();
+        gui = new dat.GUI();//<--- BLACK MAGIC
 
         gui.add(params, 'angle').min(-180.0).max(180.0).step(5).onChange(update);
         gui.add(params, 'armPhi').min(-180.0).max(180.0).step(5).onChange(update);
@@ -102,43 +102,39 @@
         }
 
         // Check key press using event.key (alternative to using keyCode)
-        if (event.key == "ArrowUp") {
-            console.log("Forward")
+        if (event.key == "ArrowUp") {//move robot forward
+            //console.log("Forward")
             params.x += 10*Math.cos(degToRad(params.angle))
             params.z -= 10*Math.sin(degToRad(params.angle))
         }
-        if (event.key == "ArrowDown") {
+        if (event.key == "ArrowDown") {//move robot backwards
             console.log("Reverse")
             params.x -= 10*Math.cos(degToRad(params.angle))
             params.z += 10*Math.sin(degToRad(params.angle))
         }
-        if (event.key == "ArrowRight") {
+        if (event.key == "ArrowRight") {//rotate right
             params.angle += 10
         }
-        if (event.key == "ArrowLeft") {
+        if (event.key == "ArrowLeft") {//rotate left
             params.angle -= 10
         }
-        if (event.key == "l") {
-            params.material = new THREE.MeshLambertMaterial( { color: 0xffff00,side:THREE.DoubleSide })
-            initScene()
+        if (event.key == "l") {//change knot material to labert
+            knot.material = new THREE.MeshLambertMaterial( { color: 0xffff00,side:THREE.DoubleSide })
         }
-        if (event.key == "p") {
-            params.material = new THREE.MeshPhongMaterial( { color: 0xffff00,specular:0xffffff,shininess:100,side:THREE.DoubleSide })
-            initScene()
+        if (event.key == "p") {//change knot material to phong
+            knot.material = new THREE.MeshPhongMaterial( { color: 0xffff00,specular:0xffffff,shininess:100,side:THREE.DoubleSide })
         }
-        if (event.key == "f") {
-            params.material = new THREE.MeshPhongMaterial( { color: 0xffff00,specular:0xffffff,shininess:100,side:THREE.DoubleSide,shading:THREE.FlatShading })
-            initScene()
+        if (event.key == "f") {//change knot material to flat
+            knot.material = new THREE.MeshPhongMaterial( { color: 0xffff00,specular:0xffffff,shininess:100,side:THREE.DoubleSide,shading:THREE.FlatShading })
         }
-        if (event.key == "w") {
-            params.material = new THREE.MeshBasicMaterial( { color: 0xffff00,wireframe:true})
-            initScene()
+        if (event.key == "w") {//change knot material to wiremesh
+            knot.material = new THREE.MeshBasicMaterial( { color: 0xffff00,wireframe:true})
         }
         updateGUI() // Update dat.GUI display in case we changed params
         update()    // Update scene
     }
     function onKeyUp(event) {}
-    function degToRad(a) {
+    function degToRad(a) {//THIS SHOULD BE PART OF  MATH
         return a/180*Math.PI;
     }
 
@@ -162,7 +158,7 @@
         scene = new THREE.Scene();
 
 
-        // Draw all the things
+        // Draw all the things one by one
         drawKnot()
         drawPlane()
 	    drawTeaCup()
@@ -207,11 +203,10 @@
     }
 
     function drawKnot(){
-        geometry = new THREE.TorusKnotGeometry( 30,2.2,217,15,2,3)
-
-        knot = new THREE.Mesh( geometry, params.material )
+        geometry = new THREE.TorusKnotGeometry( 30,2.2,217,15,2,3)//knot mesh
+        knot = new THREE.Mesh( geometry,  new THREE.MeshLambertMaterial( { color: 0xffff00 }))//The 'knot'
         scene.add( knot )
-        drawAxis(false)
+        drawAxis(false)//add an axit to the model
     }
     function drawPlane(){
         // PLANE
@@ -221,28 +216,28 @@
 
         textureLoader = new THREE.TextureLoader()
         textureLoader.crossOrigin = ''
-        planeTexture = textureLoader.load("moretextures/1.5-UV-Test-Grid.png")
+        planeTexture = textureLoader.load("moretextures/1.5-UV-Test-Grid.png")//give the plane a texture
 
         planeMaterial = new THREE.MeshPhongMaterial({
-                map: planeTexture,
+                map: planeTexture,//map the texture to the plane
                 side: THREE.DoubleSide,
                 specular: 0xffffff,
                 shininess: 10})
-        plane = new THREE.Mesh(planeGeommetry, planeMaterial)
+        plane = new THREE.Mesh(planeGeommetry, planeMaterial)//the 'plane'
         scene.add(plane);
 
         planeGrid = new THREE.GridHelper(200, 20); // Directly in XZ plane
         planeGrid.material.linewidth = 1;
-        scene.add(planeGrid);
+        scene.add(planeGrid)//add an axis
     }
     function drawAxis(main){
-        if (main){
+        if (main){//centered on the origin
             // XYZ axes (can be disabled in the GUI)
             mainAxis = new THREE.AxisHelper(100);
             mainAxis.material.linewidth = 5
             scene.add(mainAxis);
         }
-        else{
+        else{//centered on the object origin
             axis = new THREE.AxisHelper(50)
             axis.material.linewidth = 2
             params.objAxises.push(axis)
@@ -252,100 +247,114 @@
     function drawTeaCup(){
         teaLoader = new THREE.ObjectLoader()
         teaLoader.load("models/json/teapot-claraio.json",
-        function(obj){
-            scene.add(obj)
+
+        function(obj){//load the mesh and add it to the scene
+            scene.add(obj)//need to find a handle to work with the teapot after the insert
             obj.scale.set(30,30,30)
             obj.material.side=THREE.DoubleSide
             obj.rotation.set(0,degToRad(45),0)
             obj.position.set(-50,0,50)})
-        drawAxis(false)
+        drawAxis(false)//add an axis
 
     }
     function drawRobit(){
 
-        bodyGeom = new THREE.BoxGeometry(40,40,40)
-        lowerArmGeom = new THREE.BoxGeometry(30,40,30)
-        upperArmGeom = new THREE.BoxGeometry(20,40,20)
+        bodyGeom = new THREE.BoxGeometry(40,40,40)//big box
+        lowerArmGeom = new THREE.BoxGeometry(30,40,30)//smaller box
+        upperArmGeom = new THREE.BoxGeometry(20,40,20)//even smaller box
 
-        lowerArmGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,20,0));
-        upperArmGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,20,0));
+        lowerArmGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,20,0));//centered on the elbow
+        upperArmGeom.applyMatrix(new THREE.Matrix4().makeTranslation(0,20,0));//centered on the wrist
 
-        bodyMesh = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-        lowerArmMesh = new THREE.MeshBasicMaterial( { color: 0xff00ff } );
-        upperArmMesh = new THREE.MeshBasicMaterial( { color: 0x00ffff } );
+        bodyMesh = new THREE.MeshBasicMaterial( { color: 0xffff00 } );//yellow color box
+        lowerArmMesh = new THREE.MeshBasicMaterial( { color: 0xff00ff } );//magenta colored box
+        upperArmMesh = new THREE.MeshBasicMaterial( { color: 0x00ffff } );//cyan colored box
 
-        body = new THREE.Mesh( bodyGeom, bodyMesh )
-        arm = new THREE.Mesh( lowerArmGeom, lowerArmMesh )
-        foreArm = new THREE.Mesh( upperArmGeom, upperArmMesh )
+        body = new THREE.Mesh( bodyGeom, bodyMesh )//the actual "box"
+        arm = new THREE.Mesh( lowerArmGeom, lowerArmMesh )//the actual "arm"
+        foreArm = new THREE.Mesh( upperArmGeom, upperArmMesh )//the actual foreArm
 
         scene.add(body)
         scene.add(arm)
         scene.add(foreArm)
-        drawAxis(false)
+        drawAxis(false)//add an axis for the robit
     }
     function drawTetrahedron(){
         tetraMesh = new THREE.Geometry();
-        tetraMesh.vertices = [
+        tetraMesh.vertices = [//This is the easiest way to draw a tetrahedron withount VERY WEIRD COORDINATES
             new THREE.Vector3(  1,1,1 ),
             new THREE.Vector3(  -1,-1,1),
             new THREE.Vector3(  -1,1,-1),
             new THREE.Vector3(  1,-1,-1)]
 
-        tetraMesh.faces = [
+        tetraMesh.faces = [//make the faces
             new THREE.Face3( 0, 1, 2 ),
             new THREE.Face3( 3, 2, 1 ),
             new THREE.Face3( 3, 1, 0 ),
             new THREE.Face3( 3, 0, 2 ),]
 
-        tetraMesh.computeFaceNormals()
+        tetraMesh.computeFaceNormals()//computes the normals
         textureLoader = new THREE.TextureLoader()
         textureLoader.crossOrigin = ''
-        face = textureLoader.load("moretextures/triangle_texture.png")
+        face = textureLoader.load("moretextures/triangle_texture.png")//the texture
         tetraMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff ,side: THREE.DoubleSide , faceVertexUvs:[] , map :face} )
-
         tetraMesh.computeFaceNormals()
         for(var i = 0; i < tetraMesh.faces.length; i++){
-            tetraMesh.faceVertexUvs[0].push([
+            tetraMesh.faceVertexUvs[0].push([//map the texture manually
                 new THREE.Vector2( 0.5 , 1 ),
                 new THREE.Vector2( 1,0),
                 new THREE.Vector2( 0,0)
             ]);
         }
-        tetra = new THREE.Mesh(tetraMesh, tetraMaterial)
-        tetra.scale.set(20,20,20)
+        tetra = new THREE.Mesh(tetraMesh, tetraMaterial)//the tetrahedron
+        tetra.scale.set(20,20,20)//the tetrahedron is tiny otherwise
         scene.add(tetra)
-        drawAxis(false)
+        drawAxis(false)//add an axis for the tetrahedron
     }
     function update() {
         // Helpers: plane and axes
-        plane.visible = params.showPlane;
-        planeGrid.visible = params.showGrid;
-        mainAxis.visible = params.showMainAxis;
+        plane.visible = params.showPlane;//show the plane or not
+        planeGrid.visible = params.showGrid;//show the grid or not
+        mainAxis.visible = params.showMainAxis;//show the main axis or not
 
         //degToRad(params.angle)
+        //set the robot proper rotation
         body.rotation.set(0,degToRad(params.angle),0)
 
+        //give the arm the bodies axis rotation
         arm.rotation.set(   body.rotation.x,
                             body.rotation.y,
                             body.rotation.z+degToRad(params.armPhi))
+
+        //give the foreArm the bodies rotation
         foreArm.rotation.set(   arm.rotation.x,
                                 arm.rotation.y,
                                 arm.rotation.z+degToRad(params.armPsi))
 
+        //move the robot to its corner
         body.position.set(50+params.x,20,50+params.z)
+        //move the arm to its position offseted from the robot center
         arm.position.set(   body.position.x,
                             body.position.y+10,
                             body.position.z)
+        //same with the foreArm ('This is painfull to get correct')
         foreArm.position.set(   arm.position.x-30*Math.cos(degToRad(params.angle))*Math.sin(degToRad(params.armPhi)),
                                 arm.position.y+30*Math.cos(degToRad(params.armPhi)),
                                 arm.position.z+30*Math.sin(degToRad(params.angle))*Math.sin(degToRad(params.armPhi)))
 
+        //put the knot in its corner
         knot.position.set(-50,20,-50)
+        //rotate cause it would clip
         knot.rotation.set(degToRad(90),0,0)
 
+        //the original position is unnatural
         tetra.rotation.set(degToRad(145) , 0 , degToRad(-45))
+        //move the tetrahedron to its corner
         tetra.position.set(50,20,-50)
 
+        //the teacup does its own things
+
+        //move the many axes to their positions with the corresponding rotation
         params.objAxises[0].position.copy(body.position)
         params.objAxises[0].rotation.copy(body.rotation)
         params.objAxises[1].position.set(-50,0,50)
@@ -354,6 +363,9 @@
         params.objAxises[2].rotation.copy(knot.rotation)
         params.objAxises[3].position.copy(tetra.position)
         params.objAxises[3].rotation.copy(tetra.rotation)
+        //render the axes conditionally
+        //the main axis turns on and off independantly
+    
         for (i = 0; i < params.objAxises.length; i++) {
             params.objAxises[i].visible = params.showObjectAxis;
         }
