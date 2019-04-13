@@ -137,8 +137,6 @@
     function degToRad(a) {//THIS SHOULD BE PART OF  MATH
         return a/180*Math.PI;
     }
-
-
     /* ### Main functions: init, update, animate, render... ### */
     function initScene() {
         // ##### 1. Create renderer and bind it to the canvas #####
@@ -201,7 +199,6 @@
         controls.enableKeys = false; // Disable keys so we can use them ourselves
         controls.rotateSpeed = 0.1;
     }
-
     function drawKnot(){
         geometry = new THREE.TorusKnotGeometry( 30,2.2,217,15,2,3)//knot mesh
         knot = new THREE.Mesh( geometry,  new THREE.MeshLambertMaterial( { color: 0xffff00 }))//The 'knot'
@@ -281,7 +278,7 @@
     }
     function drawTetrahedron(){
         tetraMesh = new THREE.Geometry();
-        tetraMesh.vertices = [//This is the easiest way to draw a tetrahedron withount VERY WEIRD COORDINATES
+        tetraMesh.vertices = [//This is the easiest way to draw a perfect tetrahedron without VERY WEIRD COORDINATES
             new THREE.Vector3(  1,1,1 ),
             new THREE.Vector3(  -1,-1,1),
             new THREE.Vector3(  -1,1,-1),
@@ -365,7 +362,7 @@
         params.objAxises[3].rotation.copy(tetra.rotation)
         //render the axes conditionally
         //the main axis turns on and off independantly
-    
+
         for (i = 0; i < params.objAxises.length; i++) {
             params.objAxises[i].visible = params.showObjectAxis;
         }
