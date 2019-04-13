@@ -27,12 +27,12 @@
 <script>
     var camera, scene, renderer
     var mesh , mainAxis
-    var loader = new THREE.CubeTextureLoader();
+    /*var loader = new THREE.CubeTextureLoader();
     loader.setPath( 'textures/' );
-    var textureCube = loader.load( ['blue.png', 'green.png','red.png', 'purple.png','white.png', 'yellow.png'] );
-    var material = new THREE.MeshBasicMaterial( {color: 0xffffff , envMap :textureCube,wireframe:true} )
-    var geometry = new THREE.BoxGeometry( 1, 1, 1 )
-
+    var textureCube = loader.load( ['colors.png'] );
+    var material = new THREE.MeshBasicMaterial( {color: 0xffffff , Map :textureCube,wireframe:false} )
+    var geometry = new THREE.BoxGeometry( 1, 1, 1)
+    */
     var params = {
         showMainAxis:true,
         size:50,
@@ -141,9 +141,6 @@
     	drawAxis(true)
         drawNodes()
 
-
-
-
         // ##### 3. Add lights to the scene #####
         var ambientLight = new THREE.AmbientLight(0x303030);
         scene.add(ambientLight)
@@ -180,10 +177,28 @@
 
     function drawNodes(){
 
-        node = new THREE.Mesh( geometry,  material )
-        node.scale.set(params.size,params.size,params.size)
+        // creates cubes geometry in front of camera (assuming your camera position and rotation has not changed)
+        var geometry = new THREE.CubeGeometry(1, 1, 1, 1 ,1, 1)
+        var material = new THREE.Mesh( geometry,  new THREE.MeshLambertMaterial( { color: 0xffff00 }))
 
-        scene.add( node )
+        // creates a texture loader for the cube
+        var loader = new THREE.TextureLoader();
+
+        red = loader.load('data:image/red.png')
+        green = loader.load('data:image/green.png')
+        blue = loader.load('data:image/blue.png')
+        yellow = loader.load('data:image/yellow.png')
+        purle = loader.load('data:image/purple.png')
+        white = loader.load('data:image/white.png')
+        // creates material from previously stored texture
+        material.push(new THREE.MeshBasicMaterial({map:red }))
+        material.push(new THREE.MeshBasicMaterial({map:green }))
+        material.push(new THREE.MeshBasicMaterial({map:blue }))
+        material.push(new THREE.MeshBasicMaterial({map:purple }))
+        material.push(new THREE.MeshBasicMaterial({map:yellow }))
+        material.push(new THREE.MeshBasicMaterial({map:white }))
+        // creates the cube by mixing the geometry and materials
+
 
     }
     function drawAxis(){
@@ -198,11 +213,11 @@
         render()
     }
     function animate() {
-    requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
 
-    update();
-    render()
-  }
+        update();
+        render()
+    }
     function render() {
         renderer.render(scene, camera);
     }
