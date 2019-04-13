@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>three.js webgl - template</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <style>
+    canvas {
+      border: dashed 1px black;
+    }
+    canvas:focus { /* Make clear when canvas does not listen to keyboard */
+      border: solid 1px black;
+    }
+    kbd {
+        font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+        font-size: 90%; background-color: #ddd;
+        border: solid 1pt black; border-radius: 4px; padding: 0px 4px;
+    }
+  </style>
+</head>
+<script src="lib/three.min.js"></script>
+<script src="js/controls/OrbitControls.js"></script>
+<script src="js/controls/FlyControls.js"></script>
+<script src="js/loaders/OBJLoader.js"></script>
+<script src="lib/dat.gui.js"></script>
+<script>
+    var camera, scene, renderer
+    var mesh , mainAxis
+    var textureLoader = new THREE.TextureLoader()
+    textureLoader.crossOrigin = ''
+    var texture = textureLoader.load("textures/colors.png")//give the plane a texture
+    var material = new THREE.MeshBasicMaterial( {color: 0x000000} )
+    var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+
+
+    geometry.computeFaceNormals()
+
+
+    var params = {
+        showMainAxis:true,
+        size:50,
+        offsets:{   2: [0, 1, 0]  ,
+                    3: [-1, 0, 0] ,
+                    5: [0, 0, -1] ,
+                    7: [1, 0, 0]  ,
+                    11:[0, 0, 1]  ,
+                    13:[0, -1, 0] },
+
+        /*
+        Each face is given a unique prime number as an ID
+        each node is the unique product of all the faces that it appears in
+        each number is co-prime to each other
+        */
+
+        nodes:[[1*2*3*5,1*2*5,1*2*5*7,
+                1*2*3,1*2,1*2*7,
+                1*2*3*11,1*2*11,1*2*7*11],[
+                1*3*5,1*5,1*5*7,
+                1*3,1,1*7,
+                1*3*11,1*11,1*7*11],[
+                1*3*5*13,1*5*13,1*5*7*13,
+                1*3*13,1*13,1*7*13,
+                1*3*11*13,1*11*13,1*7*11*13]],
+        state:[]
+
+    }
+
+    /* ### GUI controls ### */
+    var gui = undefined;
+        function initGUI() {
+        gui = new dat.GUI();//<--- BLACK MAGIC
+
+        gui.add(params, 'showMainAxis').onChange(update);
+
+    }
+    function updateGUI(theGui) {
+        if (typeof(theGui)==="undefined") theGui=gui;
+
+        // Update the GUI display based on current parameters
+        // Source: http://stackoverflow.com/a/29069189
+        for (var i in gui.__controllers) {
+            theGui.__controllers[i].updateDisplay();
+        }
+        // Do recursion to update inside folders
+        for (var f in gui.__folders) {
+            updateGUI(theGui.__folders[f]);
+        }
+    }
+
+    /* ### Keyboard ### */
+    var currentlyPressedKeys = {};
+    function initKeys(canvas) {
+        // Make sure the canvas can receive the key events
+        canvas.setAttribute('tabindex','0');
+        canvas.focus();
+        // Workaround: give the focus back to the canvas when clicked
+        // keyboard events are not received when canvas is not focused
+        canvas.addEventListener('mousedown',function(){canvas.focus()});
+
+        // Register the keyDown and keyUp events
+        canvas.addEventListener( "keydown", onKeyDown, true);
+        canvas.addEventListener( "keyup",   onKeyUp, true);
+    }
+    // Callbacks for discrete key events
+    function onKeyDown(event) {
+        // Uncomment this to display key presses to find the keyCodes
+        console.log(event)
+        event.preventDefault();
+
+        // Handle single key presses (for example for firing the gun)
+        if (event.keyCode == 67) { // K
+            console.log('Pressed key "K"')
+        }
+
+        if (event.key == "q") {//change knot material to wiremesh
+
+        }
+        updateGUI() // Update dat.GUI display in case we changed params
+        update()    // Update scene
+    }
+    function onKeyUp(event) {}
+    function degToRad(a) {//THIS SHOULD BE PART OF  MATH
+        return a/180*Math.PI;
+    }
+
+    /* ### Main functions: init, update, animate, render... ### */
+    function initScene() {
+        // ##### 1. Create renderer and bind it to the canvas #####
+
+        canvas = document.getElementById("canvas")
+        renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        preserveDrawingBuffer: true});
+        //document.body.appendChild(renderer.domElement)
+        renderer.setClearColor(0xffffff)
+
+        //renderer.setClearColor(0xffffff)
+
+
+        // ##### 2. Create a scene and add objects to it #####
+
+        scene = new THREE.Scene();
+
+    	drawAxis(true)
+        drawNodes()
+
+
+
+
+        // ##### 3. Add lights to the scene #####
+        var ambientLight = new THREE.AmbientLight(0x303030);
+        scene.add(ambientLight)
+
+        var pointLight = new THREE.PointLight(0xffffff)
+        pointLight.position.set(150, 250, 125)
+        scene.add(pointLight)
+
+        // Add a sphere to be able to see where the point light is located
+        // Not necessary for the light to work, can be disabled in the GUI
+        pointLightGeo = new THREE.SphereGeometry(10, 8,4)
+        pointLightMat = new THREE.MeshBasicMaterial({color:0xffffd0, wireframe:true})
+        pointLightMesh = new THREE.Mesh(pointLightGeo, pointLightMat)
+        pointLightMesh.position.copy(pointLight.position)
+        scene.add(pointLightMesh)
+
+
+        // ##### 4. Create camera #####
+
+        camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 1, 2000);
+        camera.position.set(100, 150, 150)
+        camera.lookAt(new THREE.Vector3(0, 0, 0))
+
+
+        // ##### 5. Add orbit controls #####
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.addEventListener('change', render); // add this only if there is no animation loop (requestAnimationFrame)
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.10;
+        controls.enableZoom = true;
+        controls.enableKeys = false; // Disable keys so we can use them ourselves
+        controls.rotateSpeed = 0.1;
+    }
+
+    function drawNodes(){
+
+        node = new THREE.Mesh( geometry,  material )
+        node.scale.set(params.size,params.size,params.size)
+        scene.add( node )
+
+    }
+    function drawAxis(){
+        mainAxis = new THREE.AxisHelper(100);
+        mainAxis.material.linewidth = 5
+        scene.add(mainAxis);
+    }
+
+    function update() {
+        // Helpers: plane and axes
+        mainAxis.visible = params.showMainAxis;//show the main axis or not
+        render()
+    }
+    function animate() {
+    requestAnimationFrame(animate);
+
+    update();
+    render()
+  }
+    function render() {
+        renderer.render(scene, camera);
+    }
+    function start() {
+        initGUI()
+        initScene()
+        initKeys(canvas)
+
+        update()
+        render()
+        // Uncomment animate() if there are automatic animations in your scene
+        // animate()
+    }
+</script>
+
+<body onload='start();'>
+
+  <div style="float: left;">
+    <canvas id="canvas" width="500" height="500"></canvas>
+    <br>3d Scene
+    <br>Hold Left Mouse Button and drag to orbit around the scene.
+    <br>Use arrow keys to move and rotate the robot using tank controls.
+    <br>Use the gui on the right to:
+    <br>articulate the robot arms in one axis
+    <br>turn the plane on and off
+    <br>turn the plane grid on and off
+    <br>turn turn the main axis on and off
+    <br>turn the objects axis on and off
+
+
+  </div>
+
+</body>
+
+</html>
