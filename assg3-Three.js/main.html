@@ -297,11 +297,11 @@
         tetraMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff ,side: THREE.DoubleSide , faceVertexUvs:[] , map :face} )
         tetraMesh.computeFaceNormals()
         for(var i = 0; i < tetraMesh.faces.length; i++){
-            tetraMesh.faceVertexUvs[0].push([//map the texture manually
+            tetraMesh.faceVertexUvs[0].set([//map the texture manually
                 new THREE.Vector2( 0.5 , 1 ),
                 new THREE.Vector2( 1,0),
                 new THREE.Vector2( 0,0)
-            ]);
+            ])
         }
         tetra = new THREE.Mesh(tetraMesh, tetraMaterial)//the tetrahedron
         tetra.scale.set(20,20,20)//the tetrahedron is tiny otherwise

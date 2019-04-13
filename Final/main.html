@@ -26,13 +26,7 @@
 <script src="lib/dat.gui.js"></script>
 <script>
     var camera, scene, renderer
-    var mesh , mainAxis
-    /*var loader = new THREE.CubeTextureLoader();
-    loader.setPath( 'textures/' );
-    var textureCube = loader.load( ['colors.png'] );
-    var material = new THREE.MeshBasicMaterial( {color: 0xffffff , Map :textureCube,wireframe:false} )
-    var geometry = new THREE.BoxGeometry( 1, 1, 1)
-    */
+    var mainAxis
     var params = {
         showMainAxis:true,
         size:50,
@@ -176,29 +170,31 @@
     }
 
     function drawNodes(){
+        var geometry = new THREE.BoxGeometry( 1, 1, 1 )
+        textureLoader = new THREE.TextureLoader()
+        face = textureLoader.load("image/colors.png")
+        var material = new THREE.MeshBasicMaterial( {color: 0xffffff , map:face} )
+        geometry.faceVertexUvs[0][0] = [ new THREE.Vector2( 0 , 0 ), new THREE.Vector2( 1/4, 0), new THREE.Vector2( 0 , 1/2)]
+        geometry.faceVertexUvs[0][1] = [ new THREE.Vector2( 0 , 0 ), new THREE.Vector2( 1/4, 0), new THREE.Vector2( 0 , 1/2)]
+        geometry.faceVertexUvs[0][2] = [ new THREE.Vector2( 1/4 , 0 ), new THREE.Vector2( 1/2, 0), new THREE.Vector2( 1/4 , 1/2)]
+        geometry.faceVertexUvs[0][3] = [ new THREE.Vector2( 1/4 , 0 ), new THREE.Vector2( 1/2, 0), new THREE.Vector2( 1/4 , 1/2)]
+        geometry.faceVertexUvs[0][4] = [ new THREE.Vector2( 1/2 , 0 ), new THREE.Vector2( 3/4, 0), new THREE.Vector2( 1/2 , 1/2)]
+        geometry.faceVertexUvs[0][5] = [ new THREE.Vector2( 1/2 , 0 ), new THREE.Vector2( 3/4, 0), new THREE.Vector2( 1/2 , 1/2)]
+        geometry.faceVertexUvs[0][6] = [ new THREE.Vector2( 0 , 1/2 ), new THREE.Vector2( 1/4, 1/2), new THREE.Vector2( 0 , 1)]
+        geometry.faceVertexUvs[0][7] = [ new THREE.Vector2( 0 , 1/2 ), new THREE.Vector2( 1/4, 1/2), new THREE.Vector2( 0 , 1)]
+        geometry.faceVertexUvs[0][8] = [ new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1/2), new THREE.Vector2( 1/4 , 1)]
+        geometry.faceVertexUvs[0][9] = [ new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1/2), new THREE.Vector2( 1/4 , 1)]
+        geometry.faceVertexUvs[0][10] = [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1/2), new THREE.Vector2( 1/2 , 1)]
+        geometry.faceVertexUvs[0][11] = [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1/2), new THREE.Vector2( 1/2 , 1)]
 
-        // creates cubes geometry in front of camera (assuming your camera position and rotation has not changed)
-        var geometry = new THREE.CubeGeometry(1, 1, 1, 1 ,1, 1)
-        var material = new THREE.Mesh( geometry,  new THREE.MeshLambertMaterial( { color: 0xffff00 }))
 
-        // creates a texture loader for the cube
-        var loader = new THREE.TextureLoader();
 
-        red = loader.load('data:image/red.png')
-        green = loader.load('data:image/green.png')
-        blue = loader.load('data:image/blue.png')
-        yellow = loader.load('data:image/yellow.png')
-        purle = loader.load('data:image/purple.png')
-        white = loader.load('data:image/white.png')
         // creates material from previously stored texture
-        material.push(new THREE.MeshBasicMaterial({map:red }))
-        material.push(new THREE.MeshBasicMaterial({map:green }))
-        material.push(new THREE.MeshBasicMaterial({map:blue }))
-        material.push(new THREE.MeshBasicMaterial({map:purple }))
-        material.push(new THREE.MeshBasicMaterial({map:yellow }))
-        material.push(new THREE.MeshBasicMaterial({map:white }))
+        geometry.uvsNeedUpdate = true;
+        node = new THREE.Mesh(geometry , material)
+        node.scale.set(50,50,50)
         // creates the cube by mixing the geometry and materials
-
+        scene.add(node)
 
     }
     function drawAxis(){
