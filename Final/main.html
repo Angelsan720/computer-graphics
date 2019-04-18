@@ -228,399 +228,82 @@
         mainAxis.material.linewidth = 5
         scene.add(mainAxis);
     }
-    /*
-    {
-        params.work = [ params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[]]
-        params.rotate=true
-        if (forward){
-            params.axis=[,,]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[]]
-        }
-        else{
-            params.axis=[,,]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[]]
-        }
 
-    }
-    */
     function x1(forward){
-        params.work = [ params.nodes[0],
-                        params.nodes[3],
-                        params.nodes[6],
-                        params.nodes[9],
-                        params.nodes[12],
-                        params.nodes[15],
-                        params.nodes[18],
-                        params.nodes[21],
-                        params.nodes[24]]
-        params.rotate=true
         if (forward){
             params.axis=[1,0,0]
-            params.node = [
-                params.nodes[18],params.nodes[],params.nodes[],
-                params.nodes[9],params.nodes[],params.nodes[],
-                params.nodes[0],params.nodes[],params.nodes[],
-                params.nodes[21],params.nodes[],params.nodes[],
-                params.nodes[12],params.nodes[],params.nodes[],
-                params.nodes[3],params.nodes[],params.nodes[],
-                params.nodes[24],params.nodes[],params.nodes[],
-                params.nodes[15],params.nodes[],params.nodes[],
-                params.nodes[6],params.nodes[],params.nodes[]
-            ]
         }
         else{
             params.axis=[-1,0,0]
-            params.node = [
-                params.nodes[6],params.nodes[],params.nodes[],
-                params.nodes[15],params.nodes[],params.nodes[],
-                params.nodes[24],params.nodes[],params.nodes[],
-                params.nodes[3],params.nodes[],params.nodes[],
-                params.nodes[12],params.nodes[],params.nodes[],
-                params.nodes[21],params.nodes[],params.nodes[],
-                params.nodes[0],params.nodes[],params.nodes[],
-                params.nodes[9],params.nodes[],params.nodes[],
-                params.nodes[18],params.nodes[],params.nodes[]]
         }
     }
     function x2(forward){
-        params.work = [ params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[]]
-        params.rotate=true
         if (forward){
-            params.axis=[1,0,0]
-            params.node = [
-                params.nodes[],params.nodes[19],params.nodes[],
-                params.nodes[],params.nodes[10],params.nodes[],
-                params.nodes[],params.nodes[1],params.nodes[],
-                params.nodes[],params.nodes[22],params.nodes[],
-                params.nodes[],params.nodes[13],params.nodes[],
-                params.nodes[],params.nodes[4],params.nodes[],
-                params.nodes[],params.nodes[25],params.nodes[],
-                params.nodes[],params.nodes[16],params.nodes[],
-                params.nodes[],params.nodes[7],params.nodes[]]
+            params.axis=[2,0,0]
         }
         else{
-            params.axis=[-1,0,0]
-            params.node = [
-                params.nodes[],params.nodes[7],params.nodes[],
-                params.nodes[],params.nodes[16],params.nodes[],
-                params.nodes[],params.nodes[25],params.nodes[],
-                params.nodes[],params.nodes[4],params.nodes[],
-                params.nodes[],params.nodes[13],params.nodes[],
-                params.nodes[],params.nodes[22],params.nodes[],
-                params.nodes[],params.nodes[1],params.nodes[],
-                params.nodes[],params.nodes[10],params.nodes[],
-                params.nodes[],params.nodes[19],params.nodes[]]
+            params.axis=[-2,0,0]
         }
-
     }
     function x3(forward){
-        params.work = [ params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[]]
-        params.rotate=true
         if (forward){
-            params.axis=[1,0,0]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[20],
-                params.nodes[],params.nodes[],params.nodes[11],
-                params.nodes[],params.nodes[],params.nodes[2],
-                params.nodes[],params.nodes[],params.nodes[23],
-                params.nodes[],params.nodes[],params.nodes[14],
-                params.nodes[],params.nodes[],params.nodes[5],
-                params.nodes[],params.nodes[],params.nodes[26],
-                params.nodes[],params.nodes[],params.nodes[17],
-                params.nodes[],params.nodes[],params.nodes[8]]
+            params.axis=[3,0,0]
         }
         else{
-            params.axis=[-1,0,0]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[8],
-                params.nodes[],params.nodes[],params.nodes[17],
-                params.nodes[],params.nodes[],params.nodes[26],
-                params.nodes[],params.nodes[],params.nodes[5],
-                params.nodes[],params.nodes[],params.nodes[14],
-                params.nodes[],params.nodes[],params.nodes[23],
-                params.nodes[],params.nodes[],params.nodes[2],
-                params.nodes[],params.nodes[],params.nodes[11],
-                params.nodes[],params.nodes[],params.nodes[20]]
+            params.axis=[-3,0,0]
         }
-
     }
     function y1(forward){
-        params.work = [ params.nodes[0],
-                        params.nodes[1],
-                        params.nodes[2],
-                        params.nodes[3],
-                        params.nodes[4],
-                        params.nodes[5],
-                        params.nodes[6],
-                        params.nodes[7],
-                        params.nodes[8]]
-        params.rotate=true
         if (forward){
             params.axis=[0,1,0]
-            params.node = [
-                params.nodes[2],params.nodes[5],params.nodes[8],
-                params.nodes[1],params.nodes[4],params.nodes[7],
-                params.nodes[0],params.nodes[3],params.nodes[6],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[]]
         }
         else{
             params.axis=[0,-1,0]
-            params.node = [
-                params.nodes[6],params.nodes[3],params.nodes[0],
-                params.nodes[7],params.nodes[4],params.nodes[1],
-                params.nodes[8],params.nodes[5],params.nodes[2],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[]]
         }
-
     }
     function y2(forward){
-        params.work = [ params.nodes[9],
-                        params.nodes[10],
-                        params.nodes[11],
-                        params.nodes[12],
-                        params.nodes[13],
-                        params.nodes[14],
-                        params.nodes[15],
-                        params.nodes[16],
-                        params.nodes[17]]
-        params.rotate=true
         if (forward){
-            params.axis=[0,1,0]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[11],params.nodes[14],params.nodes[17],
-                params.nodes[10],params.nodes[13],params.nodes[16],
-                params.nodes[9],params.nodes[12],params.nodes[15],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[]]
+            params.axis=[0,2,0]
         }
         else{
-            params.axis=[0,-1,0]
-            params.node = [
-                params.nodes[0],params.nodes[1],params.nodes[2],
-                params.nodes[3],params.nodes[4],params.nodes[5],
-                params.nodes[6],params.nodes[7],params.nodes[8],
-                params.nodes[15],params.nodes[12],params.nodes[9],
-                params.nodes[16],params.nodes[13],params.nodes[10],
-                params.nodes[17],params.nodes[14],params.nodes[11],
-                params.nodes[18],params.nodes[19],params.nodes[20],
-                params.nodes[21],params.nodes[22],params.nodes[23],
-                params.nodes[24],params.nodes[25],params.nodes[26]]
+            params.axis=[0,-2,0]
         }
-
     }
     function y3(forward){
-        params.work = [ params.nodes[18],
-                        params.nodes[19],
-                        params.nodes[20],
-                        params.nodes[21],
-                        params.nodes[22],
-                        params.nodes[23],
-                        params.nodes[24],
-                        params.nodes[25],
-                        params.nodes[26]]
-        params.rotate=true
         if (forward){
-            params.axis=[0,1,0]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[20],params.nodes[23],params.nodes[26],
-                params.nodes[19],params.nodes[22],params.nodes[25],
-                params.nodes[18],params.nodes[21],params.nodes[24]]
+            params.axis=[0,3,0]
         }
         else{
-            params.axis=[0,-1,0]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[24],params.nodes[21],params.nodes[18],
-                params.nodes[25],params.nodes[22],params.nodes[19],
-                params.nodes[26],params.nodes[23],params.nodes[20]]
+            params.axis=[0,-3,0]
         }
-
     }
     function z1(forward){
-        params.work = [ params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[]]
-        params.rotate=true
         if (forward){
             params.axis=[0,0,1]
-            params.node = [
-                params.nodes[18],params.nodes[9],params.nodes[0],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[19],params.nodes[10],params.nodes[1],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[20],params.nodes[11],params.nodes[2],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[]]
         }
         else{
             params.axis=[0,0,-1]
-            params.node = [
-                params.nodes[2],params.nodes[11],params.nodes[20],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[1],params.nodes[10],params.nodes[19],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[0],params.nodes[9],params.nodes[18],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[]]
         }
 
     }
     function z2(forward){
-        params.work = [ params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[],
-                        params.nodes[]]
-        params.rotate=true
         if (forward){
-            params.axis=[0,0,1]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[21],params.nodes[12],params.nodes[3],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[22],params.nodes[13],params.nodes[4],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[23],params.nodes[14],params.nodes[5],
-                params.nodes[],params.nodes[],params.nodes[]]
+            params.axis=[0,0,2]
         }
         else{
-            params.axis=[0,0,-1]
-            params.node = [
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[5],params.nodes[14],params.nodes[23],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[4],params.nodes[13],params.nodes[22],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[],params.nodes[],params.nodes[],
-                params.nodes[3],params.nodes[12],params.nodes[21],
-                params.nodes[],params.nodes[],params.nodes[]]
+            params.axis=[0,0,-2]
         }
-
     }
     function z3(forward){
-        params.work = [ params.nodes[24],
-                        params.nodes[15],
-                        params.nodes[6],
-                        params.nodes[25],
-                        params.nodes[16],
-                        params.nodes[7],
-                        params.nodes[26],
-                        params.nodes[17],
-                        params.nodes[8]]
-        params.rotate=true
         if (forward){
-            params.axis=[0,0,1]
-            params.node = [
-                params.nodes[0],params.nodes[1],params.nodes[2],
-                params.nodes[3],params.nodes[4],params.nodes[5],
-                params.nodes[24],params.nodes[15],params.nodes[6],
-                params.nodes[9],params.nodes[10],params.nodes[11],
-                params.nodes[12],params.nodes[13],params.nodes[14],
-                params.nodes[25],params.nodes[16],params.nodes[7],
-                params.nodes[18],params.nodes[19],params.nodes[20],
-                params.nodes[21],params.nodes[22],params.nodes[23],
-                params.nodes[26],params.nodes[17],params.nodes[8]]
+            params.axis=[0,0,3]
         }
         else{
-            params.axis=[0,0,-1]
-            params.node = [
-                params.nodes[0],params.nodes[1],params.nodes[2],
-                params.nodes[3],params.nodes[4],params.nodes[5],
-                params.nodes[8],params.nodes[17],params.nodes[26],
-                params.nodes[9],params.nodes[10],params.nodes[11],
-                params.nodes[12],params.nodes[13],params.nodes[14],
-                params.nodes[7],params.nodes[16],params.nodes[25],
-                params.nodes[18],params.nodes[19],params.nodes[20],
-                params.nodes[21],params.nodes[22],params.nodes[23],
-                params.nodes[6],params.nodes[15],params.nodes[24]]
-        }
+            params.axis=[0,0,-3]
+
 
     }
-    /**/
+
     function update(){
         // Helpers: plane and axes
         mainAxis.visible = params.showMainAxis;//show the main axis or not
