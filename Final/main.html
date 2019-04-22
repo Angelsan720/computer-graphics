@@ -50,7 +50,7 @@
         "-Y":[5,1,4,0],
         "-Z":[2,4,3,5]}
     var params = {
-        showMainAxis:true,
+        showMainAxis:false,
         size:50,
         axis:[0,0,0],
         speed:5,
@@ -69,8 +69,9 @@
                 1*3*5*13    ,   1*5*13  ,   1*5*7*13    ,//Y-
                 1*3*13      ,   1*13    ,   1*7*13      ,
                 1*3*11*13   ,   1*11*13 ,   1*7*11*13   ],
-        perm:[]
-            }
+        perm:[],
+        work:[]
+    }
 
     /* ### GUI controls ### */
     var gui = undefined;
@@ -136,7 +137,7 @@
             }
         }
         if (event.key == "2") {
-            params.work=[1*2*5,1*2,1*2*11,1*5,1*11,1*5*13,1*13,1*11*13]
+            params.work=[1*2*5,1*2,1*2*11,1*5,1*11,1*5*13,1*13,1*11*13,1]
             if (params.forward){
                 params.perm = rotations["X"]
                 params.axis=[1,0,0]
@@ -355,58 +356,59 @@
 
     /*Rotation and mesh update*/
     function swap(list , a , b){
+        l = list.slice()
         for (var i = 0; i < 12; i++) {
-            tmp = list[a*12+i]
-            list[a*12+i] = list[b*12+i]
-            list[b*12+i] = tmp
+            var tmp = l[a*12+i]
+            l[a*12+i] = l[b*12+i]
+            l[b*12+i] = tmp
         }
-        return list
+        return l
     }
     function getUVs(target){
-        l = []
+        var l = []
         //console.log(target.faceVertexUvs)
         for(var i = 0 ; i < target.faceVertexUvs[0].length ; i++){
             for(var j = 0 ; j < 3 ; j++){
                 l.push(target.faceVertexUvs[0][i][j].x)
                 l.push(target.faceVertexUvs[0][i][j].y)
-                console.log(i , j)
             }
         }
+
         return(l)
     }
     function permute(l){
         //console.log(l.length/params.perm.length)
-        swap(l,params.perm[0],params.perm[1])
-        swap(l,params.perm[0],params.perm[2])
-        swap(l,params.perm[0],params.perm[3])
-
-        return l
+        console.log(params.perm[0],params.perm[1])
+        console.log(params.perm[0],params.perm[2])
+        console.log(params.perm[0],params.perm[3])
+        list = swap(l,params.perm[0],params.perm[1])
+        list = swap(list,params.perm[0],params.perm[2])
+        list = swap(list,params.perm[0],params.perm[3])
+        return list
     }
     function setUVs(target , list){
+        l = list.slice()
         for(var i = 0 ; i < target.faceVertexUvs[0].length ; i++){
             for(var j = 0 ; j < 3 ; j++){
-                x = list.pop()
-                y = list.pop()
+                x = l.pop()
+                y = l.pop()
                 target.faceVertexUvs[0][i][j].set(x , y)
             }
         }
     }
     function swapTexture(target){
-
         setUVs(target , permute(getUVs(target).reverse()))
-
         target.uvsNeedUpdate = true
-        //console.log("update")
-
     }
     function resetRotation(){
         for(var i = 0; i < params.work.length; i++){
             swapTexture(params.model[params.work[i]].geometry)
+            //console.log(params.work[i])
             params.model[params.work[i]].rotation.set(0,0,0)
         }
+        params.work=[]
+        params.rotation=degToRad(90)
         params.axis=[0,0,0]
-        params.rotation=90 * Math.PI / 180
-
     }
     function rotate(){
         params.rotation = params.rotation-params.speed*elapsed
@@ -440,7 +442,10 @@
                 rotate()
             }
             else{
+                //console.log(params)
                 resetRotation()
+                //console.log(params)
+
             }
         }
         render()
