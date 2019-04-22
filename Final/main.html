@@ -27,25 +27,36 @@
 <script>
     var camera, scene, renderer
     var mainAxis
-    var colors = {"BLACK":[ new THREE.Vector2( 3/4 , 1/2 )  , new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )],
-                "RED":[     [ new THREE.Vector2( 0 , 0 ), new THREE.Vector2( 1/4, 0), new THREE.Vector2( 1/4 , 1/2)],
-                            [ new THREE.Vector2( 0 , 1/2) , new THREE.Vector2( 0 , 0 ), new THREE.Vector2( 1/4, 1/2)]],
-                "WHITE":[   [ new THREE.Vector2( 1/2 , 1/2 )    , new THREE.Vector2( 1/2 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )],
-                            [ new THREE.Vector2( 1/2 , 0   )    , new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )]],
-                "YELLOW":[  [ new THREE.Vector2( 1/4 , 1/2)     , new THREE.Vector2( 1/4 , 0 )  , new THREE.Vector2( 1/2, 1/2)],
-                            [ new THREE.Vector2( 1/4 , 0 )      , new THREE.Vector2( 1/2, 0)    , new THREE.Vector2( 1/2 , 1/2)],],
-                "BLUE":[    [ new THREE.Vector2( 0 , 1) , new THREE.Vector2( 0 , 1/2 ), new THREE.Vector2( 1/4, 1)],
-                            [ new THREE.Vector2( 0 , 1/2 ), new THREE.Vector2( 1/4, 1/2), new THREE.Vector2( 1/4 , 1)]],
-                "GREEN":[   [ new THREE.Vector2( 1/4 , 1) , new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1)],
-                            [ new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1/2), new THREE.Vector2( 1/2 , 1)]],
-                "PURPLE":[  [ new THREE.Vector2( 1/2 , 1) , new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1)],
-                            [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1/2), new THREE.Vector2( 3/4, 1)]]}
+    var colors = {
+                "BLACK":[   [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )],
+                            [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]],
+                "RED":[     [ new THREE.Vector2( 0 , 0 )    , new THREE.Vector2( 1/4, 0)    , new THREE.Vector2( 1/4 , 1/2)],
+                            [ new THREE.Vector2( 0 , 1/2)   , new THREE.Vector2( 0 , 0 )    , new THREE.Vector2( 1/4, 1/2)]],
+                "WHITE":[   [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 1/2 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )],
+                            [ new THREE.Vector2( 1/2 , 0   ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )]],
+                "YELLOW":[  [ new THREE.Vector2( 1/4 , 1/2) , new THREE.Vector2( 1/4 , 0 )  , new THREE.Vector2( 1/2, 1/2)],
+                            [ new THREE.Vector2( 1/4 , 0 )  , new THREE.Vector2( 1/2, 0)    , new THREE.Vector2( 1/2 , 1/2)],],
+                "BLUE":[    [ new THREE.Vector2( 0 , 1)     , new THREE.Vector2( 0 , 1/2 )  , new THREE.Vector2( 1/4, 1)],
+                            [ new THREE.Vector2( 0 , 1/2 )  , new THREE.Vector2( 1/4, 1/2)  , new THREE.Vector2( 1/4 , 1)]],
+                "GREEN":[   [ new THREE.Vector2( 1/4 , 1)   , new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1)],
+                            [ new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1/2)  , new THREE.Vector2( 1/2 , 1)]],
+                "PURPLE":[  [ new THREE.Vector2( 1/2 , 1)   , new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1)],
+                            [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1/2)  , new THREE.Vector2( 3/4, 1)]]}
+    var rotations = {
+        "X":[3,1,2,0],
+        "Y":[5,0,4,1],
+        "Z":[4,2,5,3],
+        "-X":[3,0,2,1],
+        "-Y":[5,1,4,0],
+        "-Z":[2,4,3,5]}
     var params = {
         showMainAxis:true,
         size:50,
         axis:[0,0,0],
         speed:5,
+        forward:true,
         rotation:90 * Math.PI / 180,
+        model:{},
             //  X+              X0          X-
         nodes:[ 1*2*3*5     ,   1*2*5   ,   1*2*5*7     ,//Y+   Z+
                 1*2*3       ,   1*2     ,   1*2*7       ,//     Z0
@@ -58,16 +69,15 @@
                 1*3*5*13    ,   1*5*13  ,   1*5*7*13    ,//Y-
                 1*3*13      ,   1*13    ,   1*7*13      ,
                 1*3*11*13   ,   1*11*13 ,   1*7*11*13   ],
-        model:{},
-        work:[]
-
-    }
+        perm:[]
+            }
 
     /* ### GUI controls ### */
     var gui = undefined;
-        function initGUI() {
+    function initGUI() {
         gui = new dat.GUI();//<--- BLACK MAGIC
 
+        gui.add(params, 'forward').onChange(update)
         gui.add(params, 'showMainAxis').onChange(update)
         //gui.add(params, 'axis').onChange(update)
 
@@ -115,31 +125,103 @@
             return
         }
         if (event.key == "1") {
-            x1(params.showMainAxis)
+            params.work=[1*2*3*5,1*2*3,1*2*3*11,1*3*5,1*3,1*3*11,1*3*5*13,1*3*13,1*3*11*13]
+            if (params.forward){
+                params.perm = rotations["X"]
+                params.axis=[1,0,0]
+            }
+            else{
+                params.perm = rotations["-X"]
+                params.axis=[-1,0,0]
+            }
         }
         if (event.key == "2") {
-            x2(params.showMainAxis)
+            params.work=[1*2*5,1*2,1*2*11,1*5,1*11,1*5*13,1*13,1*11*13]
+            if (params.forward){
+                params.perm = rotations["X"]
+                params.axis=[1,0,0]
+            }
+            else{
+                params.perm = rotations["-X"]
+                params.axis=[-1,0,0]
+            }
         }
         if (event.key == "3") {
-            x3(params.showMainAxis)
+            params.work=[1*2*5*7,1*2*7,1*2*7*11,1*5*7,1*7,1*7*11,1*5*7*13,1*7*13,1*7*11*13]
+            if (params.forward){
+                params.perm = rotations["X"]
+                params.axis=[1,0,0]
+            }
+            else{
+                params.perm = rotations["-X"]
+                params.axis=[-1,0,0]
+            }
         }
         if (event.key == "4") {
-            y1(params.showMainAxis)
+            params.work=[1*2*3*5,1*2*5,1*2*5*7,1*2*3,1*2,1*2*7,1*2*3*11,1*2*11,1*2*7*11]
+            if (params.forward){
+                params.perm = rotations["Y"]
+                params.axis=[0,1,0]
+            }
+            else{
+                params.perm = rotations["-Y"]
+                params.axis=[0,-1,0]
+            }
         }
         if (event.key == "5") {
-            y2(params.showMainAxis)
+            params.work=[1*3*5,1*5,1*5*7,1*3,1*7,1*3*11,1*11,1*7*11]
+            if (params.forward){
+                params.perm = rotations["Y"]
+                params.axis=[0,1,0]
+            }
+            else{
+                params.perm = rotations["-Y"]
+                params.axis=[0,-1,0]
+            }
         }
         if (event.key == "6") {
-            y3(params.showMainAxis)
+            params.work=[1*3*5*13,1*5*13,1*5*7*13,1*3*13,1*13,1*7*13,1*3*11*13,1*11*13,1*7*11*13]
+            if (params.forward){
+                params.perm = rotations["Y"]
+                params.axis=[0,1,0]
+            }
+            else{
+                params.perm = rotations["-Y"]
+                params.axis=[0,-1,0]
+            }
         }
         if (event.key == "7") {
-            z1(params.showMainAxis)
+            if (params.forward){
+                params.work=[1*2*3*11,1*2*11,1*2*7*11,1*3*11,1*11,1*7*11,1*3*11*13,1*11*13,1*7*11*13]
+                params.perm = rotations["Z"]
+                params.axis=[0,0,1]
+            }
+            else{
+                params.perm = rotations["-Z"]
+                params.axis=[0,0,-1]
+            }
         }
         if (event.key == "8") {
-            z2(params.showMainAxis)
+            params.work=[1*2*3,1*2,1*2*7,1*3,1*7,1*3*13,1*13,1*7*13]
+            if (params.forward){
+                params.perm = rotations["Z"]
+                params.axis=[0,0,1]
+            }
+            else{
+                params.perm = rotations["-Z"]
+                params.axis=[0,0,-1]
+            }
         }
         if (event.key == "9") {
-            z3(params.showMainAxis)
+            params.work=[1*2*3*5,1*2*5,1*2*5*7,1*3*5,1*5,1*5*7,1*3*5*13,1*5*13,1*5*7*13]
+            if (params.forward){
+                params.perm = rotations["Z"]
+                params.axis=[0,0,1]
+            }
+            else{
+                params.perm = rotations["-Z"]
+                params.axis=[0,0,-1]
+            }
         }
         updateGUI() // Update dat.GUI display in case we changed params
         update()    // Update scene
@@ -213,6 +295,7 @@
             var material = new THREE.MeshBasicMaterial( {color: 0xffffff , map:face} )
 
             var mesh = new THREE.Mesh(geometry , material )
+            /*
             mesh.geometry.faceVertexUvs[0][0]  = colors["BLACK"]
             mesh.geometry.faceVertexUvs[0][1]  = colors["BLACK"]
             mesh.geometry.faceVertexUvs[0][2]  = colors["BLACK"]
@@ -224,38 +307,38 @@
             mesh.geometry.faceVertexUvs[0][8]  = colors["BLACK"]
             mesh.geometry.faceVertexUvs[0][9]  = colors["BLACK"]
             mesh.geometry.faceVertexUvs[0][10] = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][11] = colors["BLACK"]
+            mesh.geometry.faceVertexUvs[0][11] = colors["BLACK"]*/
 
             if (params.nodes[i]%3==0){
                 mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(1,0,0))
-                mesh.geometry.faceVertexUvs[0][1] = colors["RED"][0]
-                mesh.geometry.faceVertexUvs[0][0] = colors["RED"][1]
             }
             if (params.nodes[i]%7==0){
                 mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-1,0,0))
-                mesh.geometry.faceVertexUvs[0][2] = colors["YELLOW"][0]
-                mesh.geometry.faceVertexUvs[0][3] = colors["YELLOW"][1]
             }
             if (params.nodes[i]%2==0){
                 mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,1,0))
-                mesh.geometry.faceVertexUvs[0][4] = colors["WHITE"][0]
-                mesh.geometry.faceVertexUvs[0][5] = colors["WHITE"][1]
             }
             if (params.nodes[i]%13==0){
                 mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,-1,0))
-                mesh.geometry.faceVertexUvs[0][6] = colors["BLUE"][0]
-                mesh.geometry.faceVertexUvs[0][7] = colors["BLUE"][1]
             }
             if (params.nodes[i]%5==0){
                 mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,1))
-                mesh.geometry.faceVertexUvs[0][8] = colors["GREEN"][0]
-                mesh.geometry.faceVertexUvs[0][9] = colors["GREEN"][1]
             }
             if (params.nodes[i]%11==0){
                 mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-1))
-                mesh.geometry.faceVertexUvs[0][10] = colors["PURPLE"][0]
-                mesh.geometry.faceVertexUvs[0][11] = colors["PURPLE"][1]
             }
+            mesh.geometry.faceVertexUvs[0][1] = colors["RED"][0]
+            mesh.geometry.faceVertexUvs[0][0] = colors["RED"][1]
+            mesh.geometry.faceVertexUvs[0][2] = colors["YELLOW"][0]
+            mesh.geometry.faceVertexUvs[0][3] = colors["YELLOW"][1]
+            mesh.geometry.faceVertexUvs[0][4] = colors["WHITE"][0]
+            mesh.geometry.faceVertexUvs[0][5] = colors["WHITE"][1]
+            mesh.geometry.faceVertexUvs[0][6] = colors["BLUE"][0]
+            mesh.geometry.faceVertexUvs[0][7] = colors["BLUE"][1]
+            mesh.geometry.faceVertexUvs[0][8] = colors["GREEN"][0]
+            mesh.geometry.faceVertexUvs[0][9] = colors["GREEN"][1]
+            mesh.geometry.faceVertexUvs[0][10] = colors["PURPLE"][0]
+            mesh.geometry.faceVertexUvs[0][11] = colors["PURPLE"][1]
 
 
 
@@ -269,180 +352,57 @@
         mainAxis.material.linewidth = 5
         scene.add(mainAxis);
     }
-    function x1(forward){
-        params.work=[1*2*3*5,1*2*3,1*2*3*11,1*3*5,1*3,1*3*11,1*3*5*13,1*3*13,1*3*11*13]
-        if (forward){
-            params.axis=[1,0,0]
-        }
-        else{
-            params.axis=[-1,0,0]
-        }
-    }
-    function x2(forward){
-        params.work=[1*2*5,1*2,1*2*11,1*5,1*11,1*5*13,1*13,1*11*13]
-
-        if (forward){
-            params.axis=[1,0,0]
-        }
-        else{
-            params.axis=[-1,0,0]
-        }
-    }
-    function x3(forward){
-        params.work=[1*2*5*7,1*2*7,1*2*7*11,1*5*7,1*7,1*7*11,1*5*7*13,1*7*13,1*7*11*13]
-        if (forward){
-            params.axis=[1,0,0]
-        }
-        else{
-            params.axis=[-1,0,0]
-        }
-    }
-    function y1(forward){
-        params.work=[1*2*3*5     ,   1*2*5   ,   1*2*5*7     ,//Y+   Z+
-        1*2*3       ,   1*2     ,   1*2*7       ,//     Z0
-        1*2*3*11    ,   1*2*11  ,   1*2*7*11]
-        if (forward){
-            params.axis=[0,1,0]
-        }
-        else{
-            params.axis=[0,-1,0]
-        }
-    }
-    function y2(forward){
-        params.work=[
-            1*3*5       ,   1*5     ,   1*5*7   ,//Y0
-            1*3                     ,   1*7     ,
-            1*3*11      ,   1*11    ,   1*7*11]
-        if (forward){
-            params.axis=[0,1,0]
-        }
-        else{
-            params.axis=[0,-1,0]
-        }
-    }
-    function y3(forward){
-        params.work=[1*3*5*13    ,   1*5*13  ,   1*5*7*13    ,//Y-
-        1*3*13      ,   1*13    ,   1*7*13      ,
-        1*3*11*13   ,   1*11*13 ,   1*7*11*13]
-        if (forward){
-            params.axis=[0,1,0]
-        }
-        else{
-            params.axis=[0,-1,0]
-        }
-    }
-    function z1(forward){
-        params.work=[
-            1*2*3*11    ,   1*2*11  ,   1*2*7*11    ,
-            1*3*11      ,   1*11    ,   1*7*11      ,
-            1*3*11*13   ,   1*11*13 ,   1*7*11*13
-        ]
-        if (forward){
-            params.axis=[0,0,1]
-        }
-        else{
-            params.axis=[0,0,-1]
-        }
-
-    }
-    function z2(forward){
-        params.work=[
-            1*2*3       ,   1*2     ,   1*2*7   ,
-            1*3                     ,   1*7     ,
-            1*3*13      ,   1*13    ,   1*7*13
-
-        ]
-        if (forward){
-            params.axis=[0,0,1]
-        }
-        else{
-            params.axis=[0,0,-1]
-        }
-    }
-    function z3(forward){
-        params.work=[
-            1*2*3*5     ,   1*2*5   ,   1*2*5*7     ,
-            1*3*5       ,   1*5     ,   1*5*7       ,
-            1*3*5*13    ,   1*5*13  ,   1*5*7*13]
-        if (forward){
-            params.axis=[0,0,1]
-        }
-        else{
-            params.axis=[0,0,-1]
-        }
-    }
 
     /*Rotation and mesh update*/
-    function swap(l , a , b){
-        var list = l.slice()
-        var tmp1  = list[a]
-        var tmp2  = list[a+1]
-        list[a] = list[b]
-        list[a+1] = list[b+1]
-        list[b] = tmp1
-        list[b+1] = tmp2
-        //console.log(list)
+    function swap(list , a , b){
+        for (var i = 0; i < 12; i++) {
+            tmp = list[a*12+i]
+            list[a*12+i] = list[b*12+i]
+            list[b*12+i] = tmp
+        }
         return list
     }
-    function permute(l , op){
-        //console.log(l)
-        return(swap(swap(swap(l,op[0],op[3]),op[0],op[2]),op[0],op[1]))
-    }
-    function reColorNode(id , list){
-
-        for(var i = 0; i < list.length; i++){
-            params.model[id].geometry.faceVertexUvs[0] = colors["BLACK"]
-        }
-        params.model[id].geometry.uvsNeedUpdate=true
-
-        console.log(id)
-    }
-    function getColors(node){
-        var l = []
-        //console.log(node)
-        for (var i = 0 ; i < node.geometry.faceVertexUvs[0].length ; i++){
-            l.push(node.geometry.faceVertexUvs[0][i])
-            //console.log(node.geometry.faceVertexUvs[0][i])
-            //console.log(l[l.length-1]==colors["BLACK"])
-        }
-        return l
-    }
-    function swapTextures(){
-        var l = []
-        for(var i = 0; i < params.work.length; i++){
-            l.push(getColors(params.model[params.work[i]]))
-        }
-        if (params.axis[0]!=0){
-            perm = [4,2,5,3]
-            if (params.axis[1]<0){
-                perm.reverse()
-                reColorNode(params.work[0] , permute(l[5],perm))
-                reColorNode(params.work[1] , permute(l[3],perm))
-                reColorNode(params.work[2] , permute(l[0],perm))
-                reColorNode(params.work[3] , permute(l[6],perm))
-                reColorNode(params.work[4] , permute(l[1],perm))
-                reColorNode(params.work[5] , permute(l[7],perm))
-                reColorNode(params.work[6] , permute(l[4],perm))
-                reColorNode(params.work[7] , permute(l[2],perm))
-            } else {
-                reColorNode(params.work[0] , permute(l[2],perm))
-                reColorNode(params.work[1] , permute(l[4],perm))
-                reColorNode(params.work[2] , permute(l[7],perm))
-                reColorNode(params.work[3] , permute(l[1],perm))
-                reColorNode(params.work[4] , permute(l[6],perm))
-                reColorNode(params.work[5] , permute(l[0],perm))
-                reColorNode(params.work[6] , permute(l[3],perm))
-                reColorNode(params.work[7] , permute(l[5],perm))
+    function getUVs(target){
+        l = []
+        //console.log(target.faceVertexUvs)
+        for(var i = 0 ; i < target.faceVertexUvs[0].length ; i++){
+            for(var j = 0 ; j < 3 ; j++){
+                l.push(target.faceVertexUvs[0][i][j].x)
+                l.push(target.faceVertexUvs[0][i][j].y)
+                console.log(i , j)
             }
         }
-        else if (params.axis[1]!=0){}
-        else if (params.axis[2]!=0){
+        return(l)
+    }
+    function permute(l){
+        //console.log(l.length/params.perm.length)
+        swap(l,params.perm[0],params.perm[1])
+        swap(l,params.perm[0],params.perm[2])
+        swap(l,params.perm[0],params.perm[3])
+
+        return l
+    }
+    function setUVs(target , list){
+        for(var i = 0 ; i < target.faceVertexUvs[0].length ; i++){
+            for(var j = 0 ; j < 3 ; j++){
+                x = list.pop()
+                y = list.pop()
+                target.faceVertexUvs[0][i][j].set(x , y)
+            }
         }
     }
+    function swapTexture(target){
+
+        setUVs(target , permute(getUVs(target).reverse()))
+
+        target.uvsNeedUpdate = true
+        //console.log("update")
+
+    }
     function resetRotation(){
-        swapTextures()
         for(var i = 0; i < params.work.length; i++){
-            params.model[params.work[i]].rotation.copy(params.model[1].rotation)
+            swapTexture(params.model[params.work[i]].geometry)
+            params.model[params.work[i]].rotation.set(0,0,0)
         }
         params.axis=[0,0,0]
         params.rotation=90 * Math.PI / 180
