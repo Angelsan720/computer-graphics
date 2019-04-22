@@ -42,6 +42,13 @@
                             [ new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1/2)  , new THREE.Vector2( 1/2 , 1)]],
                 "PURPLE":[  [ new THREE.Vector2( 1/2 , 1)   , new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1)],
                             [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1/2)  , new THREE.Vector2( 3/4, 1)]]}
+    var rotations = {
+        "X":[3,1,2,0],
+        "Y":[5,0,4,1],
+        "Z":[4,2,5,3],
+        "-X":[3,0,2,1],
+        "-Y":[5,1,4,0],
+        "-Z":[2,4,3,5]}
     var params = {
         showMainAxis:true,
         size:50,
@@ -237,106 +244,137 @@
         scene.add(mainAxis);
     }
     function x1(forward){
-        params.perm = [4,2,5,3]
         if (forward){
+            params.perm = rotations["X"]
             params.axis=[1,0,0]
         }
         else{
-            params.perm.reverse()
+            params.perm = rotations["-X"]
             params.axis=[-1,0,0]
         }
     }
     function x2(forward){
-        params.perm = [4,2,5,3]
         if (forward){
+            params.perm = rotations["X"]
             params.axis=[1,0,0]
         }
         else{
-            params.perm.reverse()
+            params.perm = rotations["-X"]
             params.axis=[-1,0,0]
         }
     }
     function x3(forward){
-        params.perm = [4,2,5,3]
         if (forward){
+            params.perm = rotations["X"]
             params.axis=[1,0,0]
         }
         else{
-            params.perm.reverse()
+            params.perm = rotations["-X"]
             params.axis=[-1,0,0]
         }
     }
     function y1(forward){
-
         if (forward){
+            params.perm = rotations["Y"]
             params.axis=[0,1,0]
         }
         else{
+            params.perm = rotations["-Y"]
             params.axis=[0,-1,0]
         }
     }
     function y2(forward){
-
         if (forward){
+            params.perm = rotations["Y"]
             params.axis=[0,1,0]
         }
         else{
+            params.perm = rotations["-Y"]
             params.axis=[0,-1,0]
         }
     }
     function y3(forward){
-
         if (forward){
+            params.perm = rotations["Y"]
             params.axis=[0,1,0]
         }
         else{
+            params.perm = rotations["-Y"]
             params.axis=[0,-1,0]
         }
     }
     function z1(forward){
-
         if (forward){
+            params.perm = rotations["Z"]
             params.axis=[0,0,1]
         }
         else{
+            params.perm = rotations["-Z"]
             params.axis=[0,0,-1]
         }
-
     }
     function z2(forward){
-
         if (forward){
+            params.perm = rotations["Z"]
             params.axis=[0,0,1]
         }
         else{
+            params.perm = rotations["-Z"]
             params.axis=[0,0,-1]
         }
     }
     function z3(forward){
-
         if (forward){
+            params.perm = rotations["Z"]
             params.axis=[0,0,1]
         }
         else{
+            params.perm = rotations["-Z"]
             params.axis=[0,0,-1]
         }
     }
 
     /*Rotation and mesh update*/
 
-    function permute(){}
+    function getUVs(target){
+        var l = []
+        for(var i = 0 ; i < target.faceVertexUvs[0].length ; i++){
+            for(var j = 0 ; j < 3 ; j++){
+                l.push(target.faceVertexUvs[0][i][j].x)
+                l.push(target.faceVertexUvs[0][i][j].y)
+            }
+        }
+        return(l)
+    }
+    function setUVs(target , list){
+        for(var i = 0 ; i < target.faceVertexUvs[0].length ; i++){
+            for(var j = 0 ; j < 3 ; j++){
+                x = list.pop()
+                y = list.pop()
+                target.faceVertexUvs[0][i][j].set(x , y)
+            }
+        }
+    }
+    function swap(list , a , b){
+        for (var i = 0; i < 12; i++) {
+            tmp = list[a*12+i]
+            list[a*12+i] = list[b*12+i]
+            list[b*12+i] = tmp
+        }
+        return list
+    }
+    function permute(l){
+        //console.log(l.length/params.perm.length)
+        swap(l,params.perm[0],params.perm[1])
+        swap(l,params.perm[0],params.perm[2])
+        swap(l,params.perm[0],params.perm[3])
+
+        return l
+    }
     function swapTexture(target){
 
-        for (var i = 0 ; i < target.faceVertexUvs[0].length-1 ; i++){
+        setUVs(target , permute(getUVs(target).reverse()))
 
-            target.faceVertexUvs[0][i][0].set(target.faceVertexUvs[0][i+1][0])
-
-
-
-            //target.faceVertexUvs[0][params.perm[i]][0].set(x , y)
-            //target.faceVertexUvs[0][params.perm[i]][1].set(x , y)
-            //target.faceVertexUvs[0][params.perm[i]][1].set(x , y)
-            }
 
         target.uvsNeedUpdate = true
         //console.log("update")
