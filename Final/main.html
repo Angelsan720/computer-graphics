@@ -27,7 +27,10 @@
 <script>
     var camera, scene, renderer
     var mainAxis
-
+    var hist = {
+        operation:[],
+        direction:[]
+    }
     var rotations = {
         "X":[3,1,2,0],
         "Y":[5,0,4,1],
@@ -41,6 +44,7 @@
         axis:[0,0,0],
         speed:5,
         forward:true,
+        explode:1,
         rotation:90 * Math.PI / 180,
         model:{},
             //  X+              X0          X-
@@ -56,6 +60,7 @@
                 1*3*13      ,   1*13    ,   1*7*13      ,
                 1*3*11*13   ,   1*11*13 ,   1*7*11*13   ],
         perm:[],
+        swap:[],
         work:[]
     }
 
@@ -66,6 +71,7 @@
 
         gui.add(params, 'forward').onChange(update)
         gui.add(params, 'showMainAxis').onChange(update)
+        //gui.add(params, 'explode').min(1).max(15).step(1).onChange(update)
         //gui.add(params, 'axis').onChange(update)
 
     }
@@ -98,128 +104,134 @@
         canvas.addEventListener( "keyup",   onKeyUp, true);
     }
     // Callbacks for discrete key events
+
     function onKeyDown(event){
         // Uncomment this to display key presses to find the keyCodes
-        //console.log(event)
         event.preventDefault();
 
         // Handle single key presses (for example for firing the gun)
-        if (event.keyCode == 67) { // K
-            console.log('Pressed key "K"')
+        if (event.key == "m") { // K
+            scramble()
+        }
+        if (event.key == "s"){
+            solve()
         }
         if ("0,0,0"!=params.axis){
             //console.log("returning")
             return
         }
+        var direction = params.forward
+        hist.direction.push(!direction)
         if (event.key == "1") {
-            params.work=[1*2*3*5,1*2*3,1*2*3*11,1*3*5,1*3,1*3*11,1*3*5*13,1*3*13,1*3*11*13]
-            if (params.forward){
-                params.perm = rotations["X"]
-                params.axis=[1,0,0]
-            }
-            else{
-                params.perm = rotations["-X"]
-                params.axis=[-1,0,0]
-            }
+            hist.operation.push(x1)
+            x1(direction)
         }
         if (event.key == "2") {
-            params.work=[1*2*5,1*2,1*2*11,1*5,1*11,1*5*13,1*13,1*11*13,1]
-            if (params.forward){
-                params.perm = rotations["X"]
-                params.axis=[1,0,0]
-            }
-            else{
-                params.perm = rotations["-X"]
-                params.axis=[-1,0,0]
-            }
+            hist.operation.push(x2)
+            x2(direction)
         }
         if (event.key == "3") {
-            params.work=[1*2*5*7,1*2*7,1*2*7*11,1*5*7,1*7,1*7*11,1*5*7*13,1*7*13,1*7*11*13]
-            if (params.forward){
-                params.perm = rotations["X"]
-                params.axis=[1,0,0]
-            }
-            else{
-                params.perm = rotations["-X"]
-                params.axis=[-1,0,0]
-            }
+            hist.operation.push(x3)
+            x3(direction)
         }
         if (event.key == "4") {
-            params.work=[1*2*3*5,1*2*5,1*2*5*7,1*2*3,1*2,1*2*7,1*2*3*11,1*2*11,1*2*7*11]
-            if (params.forward){
-                params.perm = rotations["Y"]
-                params.axis=[0,1,0]
-            }
-            else{
-                params.perm = rotations["-Y"]
-                params.axis=[0,-1,0]
-            }
+            hist.operation.push(y1)
+            y1(direction)
         }
         if (event.key == "5") {
-            params.work=[1*3*5,1*5,1*5*7,1*3,1*7,1*3*11,1*11,1*7*11,1]
-            if (params.forward){
-                params.perm = rotations["Y"]
-                params.axis=[0,1,0]
-            }
-            else{
-                params.perm = rotations["-Y"]
-                params.axis=[0,-1,0]
-            }
+            hist.operation.push(y2)
+            y2(direction)
         }
         if (event.key == "6") {
-            params.work=[1*3*5*13,1*5*13,1*5*7*13,1*3*13,1*13,1*7*13,1*3*11*13,1*11*13,1*7*11*13]
-            if (params.forward){
-                params.perm = rotations["Y"]
-                params.axis=[0,1,0]
-            }
-            else{
-                params.perm = rotations["-Y"]
-                params.axis=[0,-1,0]
-            }
+            hist.operation.push(y3)
+            y3(direction)
         }
         if (event.key == "7") {
-            if (params.forward){
-                params.work=[1*2*3*11,1*2*11,1*2*7*11,1*3*11,1*11,1*7*11,1*3*11*13,1*11*13,1*7*11*13]
-                params.perm = rotations["Z"]
-                params.axis=[0,0,1]
-            }
-            else{
-                params.perm = rotations["-Z"]
-                params.axis=[0,0,-1]
-            }
+            hist.operation.push(z1)
+            z1(direction)
         }
         if (event.key == "8") {
-            params.work=[1*2*3,1*2,1*2*7,1*3,1*7,1*3*13,1*13,1*7*13,1]
-            if (params.forward){
-                params.perm = rotations["Z"]
-                params.axis=[0,0,1]
-            }
-            else{
-                params.perm = rotations["-Z"]
-                params.axis=[0,0,-1]
-            }
+            hist.operation.push(z2)
+            z2(direction)
         }
         if (event.key == "9") {
-            params.work=[1*2*3*5,1*2*5,1*2*5*7,1*3*5,1*5,1*5*7,1*3*5*13,1*5*13,1*5*7*13]
-            if (params.forward){
-                params.perm = rotations["Z"]
-                params.axis=[0,0,1]
-            }
-            else{
-                params.perm = rotations["-Z"]
-                params.axis=[0,0,-1]
-            }
+            hist.operation.push(z3)
+            z3(direction)
         }
         updateGUI() // Update dat.GUI display in case we changed params
         update()    // Update scene
     }
-    function onKeyUp(event){}
-    function degToRad(a){//THIS SHOULD BE PART OF  MATH
+    function onKeyUp(event){
+        event.preventDefault();
+
+        if (event.key == " "){
+            params.forward=!params.forward
+        }
+
+    }
+    function degToRad(a){//THIS SHOULD BE PART OF ALL MATH LIBRARIES
         return a/180*Math.PI;
     }
     //params.work=[]
 
     /* ### Main functions: init, update, animate, render... ### */
+    function scramble(){
+        params.rotation = 0
+        console.log('scramble')
+        operations = Math.floor(Math.random() * 100)
+        direction = Math.random() > 0.5
+        hist.direction.push(!direction)
+        switch(Math.floor(Math.random() * 9)) {
+            case 0:
+            hist.operation.push(x1)
+            x1(direction)
+            break;
+            case 1:
+            hist.operation.push(x2)
+            x2(direction)
+            break;
+            case 2:
+            hist.operation.push(x3)
+            x3(direction)
+            break;
+            case 3:
+            hist.operation.push(y1)
+            y1(direction)
+            break;
+            case 4:
+            hist.operation.push(y2)
+            y2(direction)
+            break;
+            case 5:
+            hist.operation.push(y3)
+            y3(direction)
+            break;
+            case 6:
+            hist.operation.push(z1)
+            z1(direction)
+            break;
+            case 7:
+            hist.operation.push(z2)
+            z2(direction)
+            break;
+            case 8:
+            hist.operation.push(z3)
+            z3(direction)
+            break;
+            console.log("DERP")
+            default:
+            // code block
+        }
+    }
+    function solve(){
+        console.log("solving")
+        params.rotation = 0
+        if (hist.operation.length > 0){
+            op = hist.operation.pop()
+            direction = hist.direction.pop()
+            op(direction)
+        }
+    }
     function initScene(){
         // ##### 1. Create renderer and bind it to the canvas #####
 
@@ -250,11 +262,11 @@
 
         // Add a sphere to be able to see where the point light is located
         // Not necessary for the light to work, can be disabled in the GUI
-        pointLightGeo = new THREE.SphereGeometry(10, 8,4)
-        pointLightMat = new THREE.MeshBasicMaterial({color:0xffffd0, wireframe:true})
-        pointLightMesh = new THREE.Mesh(pointLightGeo, pointLightMat)
-        pointLightMesh.position.copy(pointLight.position)
-        scene.add(pointLightMesh)
+        //pointLightGeo = new THREE.SphereGeometry(10, 8,4)
+        //pointLightMat = new THREE.MeshBasicMaterial({color:0xffffd0, wireframe:true})
+        //pointLightMesh = new THREE.Mesh(pointLightGeo, pointLightMat)
+        //pointLightMesh.position.copy(pointLight.position)
+        //scene.add(pointLightMesh)
 
 
         // ##### 4. Create camera #####
@@ -282,54 +294,49 @@
             var material = new THREE.MeshBasicMaterial( {color: 0xffffff , map:face} )
 
             var mesh = new THREE.Mesh(geometry , material )
-            /*
-            mesh.geometry.faceVertexUvs[0][0]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][1]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][2]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][3]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][4]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][5]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][6]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][7]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][8]  = colors["BLACK"]
-            mesh.geometry.faceVertexUvs[0][9]  = colors["BLACK"]
+            mesh.geometry.faceVertexUvs[0][0]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][1]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][2]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][3]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][4]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][5]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][6]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][7]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][8]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
+            mesh.geometry.faceVertexUvs[0][9]  = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
             mesh.geometry.faceVertexUvs[0][10] = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
-            mesh.geometry.faceVertexUvs[0][11] = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]*/
+            mesh.geometry.faceVertexUvs[0][11] = [ new THREE.Vector2( 3/4 , 1/2 ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 1, 1/2 )]
 
             if (params.nodes[i]%3==0){
-                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(1,0,0))
+                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(1*params.explode,0,0))
+                mesh.geometry.faceVertexUvs[0][1] = [ new THREE.Vector2( 0 , 0 )    , new THREE.Vector2( 1/4, 0)    , new THREE.Vector2( 1/4 , 1/2)]
+                mesh.geometry.faceVertexUvs[0][0] = [ new THREE.Vector2( 0 , 1/2)   , new THREE.Vector2( 0 , 0 )    , new THREE.Vector2( 1/4, 1/2)]
             }
             if (params.nodes[i]%7==0){
-                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-1,0,0))
+                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(-1*params.explode,0,0))
+                mesh.geometry.faceVertexUvs[0][2] = [ new THREE.Vector2( 1/4 , 1/2) , new THREE.Vector2( 1/4 , 0 )  , new THREE.Vector2( 1/2, 1/2)]
+                mesh.geometry.faceVertexUvs[0][3] = [ new THREE.Vector2( 1/4 , 0 )  , new THREE.Vector2( 1/2, 0)    , new THREE.Vector2( 1/2 , 1/2)]
             }
             if (params.nodes[i]%2==0){
-                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,1,0))
+                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,1*params.explode,0))
+                mesh.geometry.faceVertexUvs[0][4] = [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 1/2 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )]
+                mesh.geometry.faceVertexUvs[0][5] = [ new THREE.Vector2( 1/2 , 0   ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )]
             }
             if (params.nodes[i]%13==0){
-                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,-1,0))
+                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,-1*params.explode,0))
+                mesh.geometry.faceVertexUvs[0][6] = [ new THREE.Vector2( 0 , 1)     , new THREE.Vector2( 0 , 1/2 )  , new THREE.Vector2( 1/4, 1)]
+                mesh.geometry.faceVertexUvs[0][7] = [ new THREE.Vector2( 0 , 1/2 )  , new THREE.Vector2( 1/4, 1/2)  , new THREE.Vector2( 1/4 , 1)]
             }
             if (params.nodes[i]%5==0){
-                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,1))
+                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,1*params.explode))
+                mesh.geometry.faceVertexUvs[0][8] = [ new THREE.Vector2( 1/4 , 1)   , new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1)]
+                mesh.geometry.faceVertexUvs[0][9] = [ new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1/2)  , new THREE.Vector2( 1/2 , 1)]
             }
             if (params.nodes[i]%11==0){
-                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-1))
+                mesh.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-1*params.explode))
+                mesh.geometry.faceVertexUvs[0][10] = [ new THREE.Vector2( 1/2 , 1)   , new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1)]
+                mesh.geometry.faceVertexUvs[0][11] = [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1/2)  , new THREE.Vector2( 3/4, 1)]
             }
-
-
-            mesh.geometry.faceVertexUvs[0][1] = [ new THREE.Vector2( 0 , 0 )    , new THREE.Vector2( 1/4, 0)    , new THREE.Vector2( 1/4 , 1/2)]
-            mesh.geometry.faceVertexUvs[0][0] = [ new THREE.Vector2( 0 , 1/2)   , new THREE.Vector2( 0 , 0 )    , new THREE.Vector2( 1/4, 1/2)]
-            mesh.geometry.faceVertexUvs[0][2] = [ new THREE.Vector2( 1/4 , 1/2) , new THREE.Vector2( 1/4 , 0 )  , new THREE.Vector2( 1/2, 1/2)]
-            mesh.geometry.faceVertexUvs[0][3] = [ new THREE.Vector2( 1/4 , 0 )  , new THREE.Vector2( 1/2, 0)    , new THREE.Vector2( 1/2 , 1/2)]
-            mesh.geometry.faceVertexUvs[0][4] = [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 1/2 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )]
-            mesh.geometry.faceVertexUvs[0][5] = [ new THREE.Vector2( 1/2 , 0   ), new THREE.Vector2( 3/4 , 0 )  , new THREE.Vector2( 3/4 , 1/2 )]
-            mesh.geometry.faceVertexUvs[0][6] = [ new THREE.Vector2( 0 , 1)     , new THREE.Vector2( 0 , 1/2 )  , new THREE.Vector2( 1/4, 1)]
-            mesh.geometry.faceVertexUvs[0][7] = [ new THREE.Vector2( 0 , 1/2 )  , new THREE.Vector2( 1/4, 1/2)  , new THREE.Vector2( 1/4 , 1)]
-            mesh.geometry.faceVertexUvs[0][8] = [ new THREE.Vector2( 1/4 , 1)   , new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1)]
-            mesh.geometry.faceVertexUvs[0][9] = [ new THREE.Vector2( 1/4 , 1/2 ), new THREE.Vector2( 1/2, 1/2)  , new THREE.Vector2( 1/2 , 1)]
-            mesh.geometry.faceVertexUvs[0][10] = [ new THREE.Vector2( 1/2 , 1)   , new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1)]
-            mesh.geometry.faceVertexUvs[0][11] = [ new THREE.Vector2( 1/2 , 1/2 ), new THREE.Vector2( 3/4, 1/2)  , new THREE.Vector2( 3/4, 1)]
-
-
 
             params.model[params.nodes[i]] = mesh
             params.model[params.nodes[i]].scale.set(params.size,params.size,params.size)
@@ -343,6 +350,23 @@
     }
 
     /*Rotation and mesh update*/
+    function swapNodes(uv , a , b){
+        l = uv.slice()
+        var tmp = l[a]
+        l[a] = l[b]
+        l[b] = tmp
+        return l
+    }
+    function permuteNodes(l){
+        list = swapNodes(l,params.swap[0],params.swap[1])
+        list = swapNodes(list,params.swap[0],params.swap[2])
+        list = swapNodes(list,params.swap[0],params.swap[3])
+        list = swapNodes(list,params.swap[4],params.swap[5])
+        list = swapNodes(list,params.swap[4],params.swap[6])
+        list = swapNodes(list,params.swap[4],params.swap[7])
+        //console.log(list)
+        return list
+    }
     function swap(list , a , b){
         l = list.slice()
         for (var i = 0; i < 12; i++) {
@@ -352,23 +376,21 @@
         }
         return l
     }
+    function permute(l){
+        list = swap(l,params.perm[0],params.perm[1])
+        list = swap(list,params.perm[0],params.perm[2])
+        list = swap(list,params.perm[0],params.perm[3])
+        return list
+    }
     function getUVs(target){
         var l = []
-        //console.log(target.faceVertexUvs)
         for(var i = 0 ; i < target.faceVertexUvs[0].length ; i++){
             for(var j = 0 ; j < 3 ; j++){
                 l.push(target.faceVertexUvs[0][i][j].x)
                 l.push(target.faceVertexUvs[0][i][j].y)
             }
         }
-        console.log(l)
         return(l)
-    }
-    function permute(l){
-        list = swap(l,params.perm[0],params.perm[1])
-        list = swap(list,params.perm[0],params.perm[2])
-        list = swap(list,params.perm[0],params.perm[3])
-        return list
     }
     function setUVs(target , list){
         l = list.slice()
@@ -381,12 +403,17 @@
         }
     }
     function resetRotation(){
-        console.log(params.work)
-        console.log(params.perm)
+
+        var arr = []
         for(var i = 0; i < params.work.length; i++){
             var target = params.model[params.work[i]].geometry
-            setUVs(target , permute(getUVs(target).reverse()))
             params.model[params.work[i]].rotation.set(0,0,0)
+            arr.push(permute(getUVs(target).reverse()))
+        }
+        arr = permuteNodes(arr)
+        for(var i = 0; i < params.work.length; i++){
+            var target = params.model[params.work[i]].geometry
+            setUVs(target , arr[i])
             target.uvsNeedUpdate = true
         }
         params.work=[]
@@ -394,12 +421,130 @@
         params.axis=[0,0,0]
     }
     function rotate(){
+
         params.rotation = params.rotation-params.speed*elapsed
         for(var i = 0; i < params.work.length; i++){
             target = params.model[params.work[i]]
             target.rotateX(params.speed*elapsed*params.axis[0])
             target.rotateY(params.speed*elapsed*params.axis[1])
             target.rotateZ(params.speed*elapsed*params.axis[2])
+        }
+    }
+    function x1(direction){
+        params.work=[3, 6, 15, 30, 33, 39, 66, 195, 429]
+        if (direction){
+            params.swap=[1,2,5,4,3,7,8,6]
+            params.perm = rotations["X"]
+            params.axis=[1,0,0]
+        }
+        else{
+            params.swap=[1,4,5,2,3,6,8,7]
+            params.perm = rotations["-X"]
+            params.axis=[-1,0,0]
+        }
+    }
+    function x2(direction){
+        params.work=[1, 2, 5, 10, 11, 13, 22, 65, 143]
+        if (direction){
+            params.swap=[1,2,5,4,3,7,8,6]
+            params.perm = rotations["X"]
+            params.axis=[1,0,0]
+        }
+        else{
+            params.swap=[1,4,5,2,3,6,8,7]
+            params.perm = rotations["-X"]
+            params.axis=[-1,0,0]
+        }
+    }
+    function x3(direction){
+        params.work=[7, 14, 35, 70, 77, 91, 154, 455, 1001]
+        if (direction){
+            params.swap=[1,2,5,4,3,7,8,6]
+            params.perm = rotations["X"]
+            params.axis=[1,0,0]
+        }
+        else{
+            params.swap=[1,4,5,2,3,6,8,7]
+            params.perm = rotations["-X"]
+            params.axis=[-1,0,0]
+        }
+    }
+    function y1(direction){
+        params.work=[2, 6, 10, 14, 22, 30, 66, 70, 154]
+        if (direction){
+            params.swap=[1,4,3,2,5,6,8,7]
+            params.perm = rotations["Y"]
+            params.axis=[0,1,0]
+        }
+        else{
+            params.swap=[1,2,3,4,5,7,8,6]
+            params.perm = rotations["-Y"]
+            params.axis=[0,-1,0]
+        }
+    }
+    function y2(direction){
+        params.work=[1, 3, 5, 7, 11, 15, 33, 35, 77]
+        if (direction){
+            params.swap=[1,4,3,2,5,6,8,7]
+            params.perm = rotations["Y"]
+            params.axis=[0,1,0]
+        }
+        else{
+            params.swap=[1,2,3,4,5,7,8,6]
+            params.perm = rotations["-Y"]
+            params.axis=[0,-1,0]
+        }
+    }
+    function y3(direction){
+        params.work=[13, 39, 65, 91, 143, 195, 429, 455, 1001]
+        if (direction){
+            params.swap=[1,4,3,2,5,6,8,7]
+            params.perm = rotations["Y"]
+            params.axis=[0,1,0]
+        }
+        else{
+            params.swap=[1,2,3,4,5,7,8,6]
+            params.perm = rotations["-Y"]
+            params.axis=[0,-1,0]
+        }
+    }
+    function z1(direction){
+        params.work=[11, 22, 33, 66, 77, 143, 154, 429, 1001]
+        if (direction){
+            params.swap=[1,4,5,2,3,6,8,7]
+            params.perm = rotations["Z"]
+            params.axis=[0,0,1]
+        }
+        else{
+            params.swap=[1,2,5,4,3,7,8,6]
+            params.perm = rotations["-Z"]
+            params.axis=[0,0,-1]
+        }
+    }
+    function z2(direction){
+        params.work=[1, 2, 3, 6, 7, 13, 14, 39, 91]
+        if (direction){
+            params.swap=[1,4,5,2,3,6,8,7]
+            params.perm = rotations["Z"]
+            params.axis=[0,0,1]
+        }
+        else{
+            params.swap=[1,2,5,4,3,7,8,6]
+            params.perm = rotations["-Z"]
+            params.axis=[0,0,-1]
+        }
+    }
+    function z3(direction){
+        params.work=[5, 10, 15, 30, 35, 65, 70, 195, 455]
+        if (direction){
+            params.swap=[1,4,5,2,3,6,8,7]
+            params.perm = rotations["Z"]
+            params.axis=[0,0,1]
+        }
+        else{
+            params.swap=[1,2,5,4,3,7,8,6]
+            params.perm = rotations["-Z"]
+            params.axis=[0,0,-1]
         }
     }
 
@@ -425,9 +570,7 @@
                 rotate()
             }
             else{
-                //console.log(params)
                 resetRotation()
-                //console.log(params)
             }
         }
         render()
@@ -460,15 +603,12 @@
     <canvas id="canvas" width="500" height="500"></canvas>
     <br>3d Scene
     <br>Hold Left Mouse Button and drag to orbit around the scene.
-    <br>Use arrow keys to move and rotate the robot using tank controls.
-    <br>Use the gui on the right to:
-    <br>articulate the robot arms in one axis
-    <br>turn the plane on and off
-    <br>turn the plane grid on and off
-    <br>turn turn the main axis on and off
-    <br>turn the objects axis on and off
-
-
+    <br>1 2 3 Rotate the X slices
+    <br>4 5 6 Rotate the Y slices
+    <br>7 8 9 Rotate the Z slices
+    <br>Hold 'm' to scramble
+    <br>Hold 's' to solve
+    <br>Press space to reverse the rotation direction
   </div>
 
 </body>
