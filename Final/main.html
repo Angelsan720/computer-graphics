@@ -40,12 +40,20 @@
 <script src="js/loaders/OBJLoader.js"></script>
 <script src="lib/dat.gui.js"></script>
 <script>
+
+    //necesse daemoniorum
     var camera, scene, renderer
+
+    //just if we want to display the main axis
     var mainAxis
+
+    //needed to do the undo
     var hist = {
         operation:[],
         direction:[]
     }
+
+    //fixed rotations needed for their respective axi
     var rotations = {
         "X":[3,1,2,0],
         "Y":[5,0,4,1],
@@ -53,16 +61,23 @@
         "-X":[3,0,2,1],
         "-Y":[5,1,4,0],
         "-Z":[2,4,3,5]}
+
+    //the very complicated scene
     var params = {
         showMainAxis:false,
         size:50,
+        //if not 0,0,0 that means theres work to be done
         axis:[0,0,0],
         speed:5,
         forward:true,
+
+        //just needed to check if the inside is the correct color
         explode:1,
         rotation:90 * Math.PI / 180,
         model:{},
             //  X+              X0          X-
+
+        //this is the easiest way to find a node thats in a particular face
         nodes:[ 1*2*3*5     ,   1*2*5   ,   1*2*5*7     ,//Y+   Z+
                 1*2*3       ,   1*2     ,   1*2*7       ,//     Z0
                 1*2*3*11    ,   1*2*11  ,   1*2*7*11    ,//     Z-
@@ -74,8 +89,14 @@
                 1*3*5*13    ,   1*5*13  ,   1*5*7*13    ,//Y-
                 1*3*13      ,   1*13    ,   1*7*13      ,
                 1*3*11*13   ,   1*11*13 ,   1*7*11*13   ],
+
+        //color swaps
         perm:[],
+
+        //node swaps does the same as perm but on nodes
         swap:[],
+
+        //the nodes that need operating on
         work:[]
     }
 
@@ -121,21 +142,24 @@
     // Callbacks for discrete key events
 
     function onKeyDown(event){
-        // Uncomment this to display key presses to find the keyCodes
         event.preventDefault();
 
-        // Handle single key presses (for example for firing the gun)
-        if (event.key == "m") { // K
+        //scrambles
+        if (event.key == "m") {
             scramble()
         }
+        //solve
         if (event.key == "s"){
             solve()
         }
+        //faster code execution
         if ("0,0,0"!=params.axis){
             //console.log("returning")
             return
         }
         var direction = params.forward
+
+        //keyboard controlls
         if (event.key == "1") {
 
             x1(direction)
@@ -170,8 +194,8 @@
     }
     function onKeyUp(event){
         event.preventDefault();
-
-        if (event.key == " "){
+        //flip the rotation
+        if (event.key == "0"){
             changeRotation()
         }
 
@@ -179,15 +203,16 @@
     function degToRad(a){//THIS SHOULD BE PART OF ALL MATH LIBRARIES
         return a/180*Math.PI;
     }
-    //params.work=[]
+
 
     /* ### Main functions: init, update, animate, render... ### */
     function scramble(){
+        //scrambles randomly
         params.rotation = 0
         console.log('scramble')
         operations = Math.floor(Math.random() * 100)
         direction = Math.random() > 0.5
-        hist.direction.push(!direction)
+        //hist.direction.push(!direction)
         switch(Math.floor(Math.random() * 9)) {
             case 0:
             x1(direction)
@@ -220,15 +245,21 @@
             default:
             // code block
         }
+        console.log(hist.operation)
+
     }
     function solve(){
+        //solves
         console.log("solving")
         params.rotation = 0
         if (hist.operation.length > 0){
             op = hist.operation.pop()
             direction = hist.direction.pop()
             op(direction)
+            hist.operation.pop()
+            hist.direction.pop()
         }
+        console.log(hist.operation)
     }
     function initScene(){
         // ##### 1. Create renderer and bind it to the canvas #####
@@ -431,6 +462,8 @@
     function changeRotation(){
         params.forward=!params.forward
     }
+
+    //these function controll set which slice rotates
     function x1(direction){
         hist.operation.push(x1)
         hist.direction.push(!direction)
@@ -566,6 +599,8 @@
             params.axis=[0,0,-1]
         }
     }
+
+    //checks if all the color locations are the same
     function checkSame(l){
         res = true
         for (i = 1; i < l.length & res; i++){
@@ -576,57 +611,27 @@
         }
         return res
     }
+    //checks if the cube has all the correct colors to be considered "solved"
     function check(){
         var result = true
 
-        var work = [2, 6, 10, 14, 22, 30, 66, 70, 154]
-        var l = []
-        for (var i in work){
-            l.push(getUVs(params.model[work[i]].geometry)[24])
+        var jobs = [[2, 6, 10, 14, 22, 30, 66, 70, 154],
+                    [3, 6, 15, 30, 33, 39, 66, 195, 429],
+                    [5, 10, 15, 30, 35, 65, 70, 195, 455],
+                    [7, 14, 35, 70, 77, 91, 154, 455, 1001],
+                    [11, 22, 33, 66, 77, 143, 154, 429, 1001],
+                    [13, 39, 65, 91, 143, 195, 429, 455, 1001]]
+        var offsets = [24,0,48,12,60,36]
+        for (var j in jobs){
+            var work = jobs[j]
+            var l = []
+            for (var i in work){
+                l.push(getUVs(params.model[work[i]].geometry)[offsets[j]])
+            }
+
+            result = result && checkSame(l)
         }
-        //console.log(l)
-        //console.log(checkSame(l))
-        result = result && checkSame(l)
 
-        var work = [3, 6, 15, 30, 33, 39, 66, 195, 429]
-        var l = []
-        for (var i in work){
-            l.push(getUVs(params.model[work[i]].geometry)[0])
-        }
-        result = result && checkSame(l)
-
-
-        var work = [5, 10, 15, 30, 35, 65, 70, 195, 455]
-        var l = []
-        for (var i in work){
-            l.push(getUVs(params.model[work[i]].geometry)[48])
-        }
-        result = result && checkSame(l)
-
-
-        var work = [7, 14, 35, 70, 77, 91, 154, 455, 1001]
-        var l = []
-        for (var i in work){
-            l.push(getUVs(params.model[work[i]].geometry)[12])
-        }
-        result = result && checkSame(l)
-
-
-        var work = [11, 22, 33, 66, 77, 143, 154, 429, 1001]
-        var l = []
-        for (var i in work){
-            l.push(getUVs(params.model[work[i]].geometry)[60])
-        }
-        result = result && checkSame(l)
-
-
-        var work = [13, 39, 65, 91, 143, 195, 429, 455, 1001]
-        var l = []
-        for (var i in work){
-            l.push(getUVs(params.model[work[i]].geometry)[36])
-        }
-        result = result && checkSame(l)
-        //console.log(result)
         if (result){
             document.getElementById('msgBox').innerHTML = "Solved"
         } else {
@@ -713,16 +718,14 @@
                 <td><span id="msgBox"></span></td>
             </tr>
             <tr>
-                <td><button onclick="scramble()" class="Scramble Button">Flip Rotation</button></td>
-                <td><button onclick="solve()" class="Solve Button">Check if solved</button></td>
+                <td><button onclick="scramble()" class="Scramble Button">Scramble</button></td>
+                <td><button onclick="solve()" class="Solve Button">Solve</button></td>
                 <td><span id="msgBox"></span></td>
             </tr>
         </table>
 
     <br>Hold Left Mouse Button and drag to orbit around the scene.
-    <br>Tap 'm' to scramble
-    <br>Tap 's' to solve
-    <br>Press space to reverse the rotation direction
+    <br>Hold Right Mouse Button and drag to pan around the scene.
   </div>
 
 </body>
